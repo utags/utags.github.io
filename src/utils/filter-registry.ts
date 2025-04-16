@@ -1,7 +1,9 @@
 import type { BookmarkKeyValuePair } from '../types/bookmarks.js'
 
 type FilterCondition = (
-  entry: BookmarkKeyValuePair,
+  href: string,
+  tags: string[],
+  meta: Record<string, any>,
   params: URLSearchParams
 ) => boolean
 
@@ -33,8 +35,8 @@ class FilterRegistry {
 
     if (activeConditions.length === 0) return entries
 
-    return entries.filter((entry) =>
-      activeConditions.every((condition) => condition(entry, params))
+    return entries.filter(([href, { tags, meta }]) =>
+      activeConditions.every((condition) => condition(href, tags, meta, params))
     )
   }
 }

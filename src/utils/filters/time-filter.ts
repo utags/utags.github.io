@@ -1,13 +1,12 @@
-import type { BookmarkKeyValuePair } from '../../types/bookmarks.js'
+import { defaultFilterRegistry } from '../filter-registry.js'
 
 export function createTimeCondition(params: URLSearchParams) {
   const timeType = params.get('time')
   if (!timeType) return null
 
-  return (entry: BookmarkKeyValuePair) => {
-    const timestamp =
-      timeType === 'created' ? entry[1].meta?.created : entry[1].meta?.updated
-    // 实际时间判断逻辑
+  return (href: string, tags: string[], meta: Record<string, any>) => {
+    const timestamp = timeType === 'created' ? meta.created : meta.updated
+    // 使用解构后的参数进行判断
     return true
   }
 }

@@ -1,10 +1,10 @@
-import type { BookmarkKeyValuePair } from '../../types/bookmarks.js'
+import { defaultFilterRegistry } from '../filter-registry.js'
 
 export function createNoteCondition(params: URLSearchParams) {
   if (!params.has('has_note')) return null
 
-  return (entry: BookmarkKeyValuePair) => {
-    return !!entry[1].meta?.note?.trim()
+  return (href: string, tags: string[], meta: Record<string, any>) => {
+    return !!meta.note?.trim()
   }
 }
 

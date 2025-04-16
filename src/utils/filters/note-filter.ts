@@ -1,13 +1,11 @@
 import type { BookmarkKeyValuePair } from '../../types/bookmarks.js'
 
-export function noteFilter(
-  entries: BookmarkKeyValuePair[],
-  params: URLSearchParams
-) {
-  const hasNote = params.get('has_note')
-  if (!hasNote) return entries
+export function createNoteCondition(params: URLSearchParams) {
+  if (!params.has('has_note')) return null
 
-  return entries.filter(([_, entry]) => {
-    return entry.meta?.note?.trim().length > 0
-  })
+  return (entry: BookmarkKeyValuePair) => {
+    return !!entry[1].meta?.note?.trim()
+  }
 }
+
+defaultFilterRegistry.register('has_note', createNoteCondition)

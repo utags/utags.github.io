@@ -1,24 +1,16 @@
-import type { BookmarkKeyValuePair } from '../../types/bookmarks.js';
+import type { BookmarkKeyValuePair } from '../../types/bookmarks.js'
 
-export const timeCondition: FilterCondition = (entry, params) => {
+export function createTimeCondition(params: URLSearchParams) {
   const timeType = params.get('time')
-  if (!timeType) return true
+  if (!timeType) return null
 
-  const timestamp = timeType === 'created'
-    ? entry[1].meta?.created
-    : entry[1].meta?.updated
-  return true // 实际条件判断
+  return (entry: BookmarkKeyValuePair) => {
+    const timestamp =
+      timeType === 'created' ? entry[1].meta?.created : entry[1].meta?.updated
+    // 实际时间判断逻辑
+    return true
+  }
 }
 
-export function timeFilter(
-  entries: BookmarkKeyValuePair[],
-  params: URLSearchParams
-) {
-  const timeType = params.get('time');
-  if (!timeType) return entries;
-
-  // ... 保留原有的时间过滤逻辑 ...
-  return entries.filter(([_, entry]) => {
-    // ... 原有过滤条件 ...
-  });
-}
+// 注册时关联参数名
+defaultFilterRegistry.register('time', createTimeCondition)

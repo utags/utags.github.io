@@ -6,19 +6,35 @@ type FilterCondition = (
 ) => boolean
 
 class FilterRegistry {
-  private conditions: FilterCondition[] = []
+  private conditionFactories: Map<
+    string,
+    (params: URLSearchParams) => FilterCondition | null
+  > = new Map()
 
-  register(condition: FilterCondition) {
-    this.conditions.push(condition)
+  register(
+    paramName: string,
+    factory: (params: URLSearchParams) => FilterCondition | null
+  ) {
+    this.conditionFactories.set(paramName, factory)
     return this
   }
 
   apply(entries: BookmarkKeyValuePair[], searchParams: string) {
-    if (this.conditions.length === 0) return entries
-
     const params = new URLSearchParams(searchParams)
+    const activeConditions: FilterCondition[] = []
+
+    // 动态创建需要的条件
+    for (const [paramName, factory] of this.conditionFactories) {
+      if (params.has(paramName)) {
+        const condition = factory(params)
+        if (condition) activeConditions.push(condition)
+      }
+    }
+
+    if (activeConditions.length === 0) return entries
+
     return entries.filter((entry) =>
-      this.conditions.every((condition) => condition(entry, params))
+      activeConditions.every((condition) => condition(entry, params))
     )
   }
 }

@@ -1,26 +1,26 @@
 import type { BookmarkKeyValuePair } from '../types/bookmarks.js'
 
-type FilterFunction = (
-  entries: BookmarkKeyValuePair[],
+type FilterCondition = (
+  entry: BookmarkKeyValuePair,
   params: URLSearchParams
-) => BookmarkKeyValuePair[]
+) => boolean
 
 class FilterRegistry {
-  private filters: FilterFunction[] = []
+  private conditions: FilterCondition[] = []
 
-  register(filter: FilterFunction) {
-    this.filters.push(filter)
-    return this // 支持链式调用
+  register(condition: FilterCondition) {
+    this.conditions.push(condition)
+    return this
   }
 
   apply(entries: BookmarkKeyValuePair[], searchParams: string) {
+    if (this.conditions.length === 0) return entries
+
     const params = new URLSearchParams(searchParams)
-    return this.filters.reduce(
-      (result, filter) => filter(result, params),
-      entries
+    return entries.filter((entry) =>
+      this.conditions.every((condition) => condition(entry, params))
     )
   }
 }
 
-// 创建默认过滤器实例
 export const defaultFilterRegistry = new FilterRegistry()

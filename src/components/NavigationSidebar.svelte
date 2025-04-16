@@ -9,6 +9,7 @@
     Star,
     Globe,
     Folder,
+    NotebookPen,
     PanelLeftOpen,
     PanelLeftClose,
   } from 'lucide-svelte'
@@ -50,6 +51,7 @@
       icon: 'bookmark',
       items: [
         { name: '所有书签', icon: 'list', href: '/#' },
+        { name: '笔记', icon: 'note', href: '/notes#' },
         { name: '最近添加', icon: 'clock', href: '?time=created&period=1m#' },
         { name: '最近修改', icon: 'clock', href: '?time=updated&period=1m#' },
         // { name: '最近修改', icon: 'clock', href: 'updated/2m' },
@@ -127,6 +129,8 @@
                       <Star size={16} />
                     {:else if item.icon === 'globe'}
                       <Globe size={16} />
+                    {:else if item.icon === 'note'}
+                      <NotebookPen size={16} />
                     {:else}
                       <Folder size={16} />
                     {/if}

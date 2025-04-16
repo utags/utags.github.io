@@ -1,4 +1,12 @@
+import { defaultFilterRegistry } from './filter-registry'
 import type { BookmarkKeyValuePair } from '../types/bookmarks.js'
+
+export function filterBookmarksByUrlParamsNew(
+  entries: BookmarkKeyValuePair[],
+  searchParams: string
+) {
+  return defaultFilterRegistry.apply(entries, searchParams)
+}
 
 /**
  * Filter bookmarks by URL parameters
@@ -60,3 +68,31 @@ export function filterBookmarksByUrlParams(
     return true
   })
 }
+
+// /#sb/linux.do#block/linux.do
+// /?time=created&period=1m#sb/linux.do#block/linux.do
+// /?filter=has_note#sb/linux.do#block/linux.do
+// /?filter=has_note&time=created&period=1m#sb/linux.do#block/linux.do
+// /?filter=sb/linux.do&filter=block/linux.do#sb/linux.do#block/linux.do
+// /?filter=has_note&filter=sb/linux.do&filter=block/linux.do#sb/linux.do#block/linux.do
+// /?filter=has_note&filter=sb/linux.do&filter=block/linux.do&time=created&period=1m#sb/linux.do#block/linux.do
+// time=created&period=1m
+// filter=sb/linux.do
+// filter=has_note
+// filter=has_highlight
+// filter=is_hidden
+// filter=is_article
+// filter=is_video
+// filter=is_audio
+// filter=is_image
+// filter=is_file
+// filter=is_folder
+// filter=is_archived
+// filter=is_deleted
+// filter=is_synced
+// filter=is_unsynced
+// source=default
+// source=shared/1234
+// source=deleted
+// source=imported
+// source=synced

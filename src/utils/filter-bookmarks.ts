@@ -1,7 +1,13 @@
-import { defaultFilterRegistry } from './filter-registry'
 import type { BookmarkKeyValuePair } from '../types/bookmarks.js'
+import { defaultFilterRegistry } from './filter-registry.js'
+import { createTimeCondition } from './filters/time-filter.js'
+import { createNoteCondition } from './filters/note-filter.js'
 
-export function filterBookmarksByUrlParamsNew(
+defaultFilterRegistry
+  .register('time', createTimeCondition)
+  .register('has_note', createNoteCondition)
+
+export function filterBookmarksByUrlParams(
   entries: BookmarkKeyValuePair[],
   searchParams: string
 ) {
@@ -14,7 +20,7 @@ export function filterBookmarksByUrlParamsNew(
  * @param searchParams - URL search parameters string
  * @returns Filtered array of bookmarks
  */
-export function filterBookmarksByUrlParams(
+export function filterBookmarksByUrlParamsOld(
   entries: BookmarkKeyValuePair[],
   searchParams: string
 ): BookmarkKeyValuePair[] {

@@ -1,24 +1,29 @@
 /**
+ * The metadata of a bookmark.
+ */
+export type BookmarkMetadata = {
+  title?: string
+  description?: string
+  note?: string
+  favicon?: string
+  coverImage?: string
+  mainUrl?: string
+  /**
+   * The timestamp of the creation of the bookmark.
+   */
+  created: number
+  /**
+   * The timestamp of the last update of the bookmark.
+   */
+  updated: number
+}
+
+/**
  * The tags and metadata of a bookmark.
  */
 export type BookmarkTagsAndMetadata = {
   tags: string[]
-  meta: {
-    title?: string
-    description?: string
-    note?: string
-    favicon?: string
-    coverImage?: string
-    mainUrl?: string
-    /**
-     * The timestamp of the creation of the bookmark.
-     */
-    created: number
-    /**
-     * The timestamp of the last update of the bookmark.
-     */
-    updated: number
-  }
+  meta: BookmarkMetadata
   // /**
   //  * The alternate URLs of the bookmark.
   //  */

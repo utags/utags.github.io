@@ -133,6 +133,43 @@ describe('filterBookmarksByUrlParams', () => {
     vi.useRealTimers()
   })
 
+  it('should handle period without unit (default to days)', () => {
+    const mockDate = new Date('2023-03-12')
+    vi.useFakeTimers()
+    vi.setSystemTime(mockDate)
+
+    const result = filterBookmarksByUrlParams(
+      mockBookmarks,
+      '?time=created&period=7' // No unit specified, defaults to days
+    )
+    expect(result.length).toBe(1)
+    expect(result[0][1].meta.title).toBe('Example 3')
+
+    vi.useRealTimers()
+  })
+
+  it('should handle empty period value (fallback to start/end dates)', () => {
+    const mockDate = new Date('2023-03-12')
+    vi.useFakeTimers()
+    vi.setSystemTime(mockDate)
+
+    const result = filterBookmarksByUrlParams(
+      mockBookmarks,
+      '?time=created&period=&start=2023-01-01' // Empty period value
+    )
+    expect(result.length).toBe(3) // Should ignore empty period and use start date filter
+
+    vi.useRealTimers()
+  })
+
+  it('should handle empty period value with no dates (return all)', () => {
+    const result = filterBookmarksByUrlParams(
+      mockBookmarks,
+      '?time=created&period=' // Empty period value with no date range
+    )
+    expect(result.length).toBe(3) // Should return all bookmarks
+  })
+
   it('should return empty array when no bookmarks match the filter', () => {
     const result = filterBookmarksByUrlParams(
       mockBookmarks,

@@ -183,6 +183,89 @@ describe('filterBookmarksByUrlParams', () => {
     expect(result.length).toBe(3)
   })
 
+  // 添加 note filter 测试用例
+  it('should filter bookmarks with notes when has_note param is present', () => {
+    const bookmarksWithNotes: BookmarkKeyValuePair[] = [
+      ...mockBookmarks,
+      [
+        'https://example.com/4',
+        {
+          tags: ['docs'],
+          meta: {
+            title: 'Example 4',
+            note: 'Important note',
+            created: Date.parse('2023-03-01'),
+            updated: Date.parse('2023-03-01'),
+          },
+        },
+      ],
+    ]
+
+    const result = filterBookmarksByUrlParams(
+      bookmarksWithNotes,
+      '?has_note=true'
+    )
+    expect(result.length).toBe(1)
+    expect(result[0][1].meta.title).toBe('Example 4')
+  })
+
+  it('should return empty array when no bookmarks have notes', () => {
+    const result = filterBookmarksByUrlParams(mockBookmarks, '?has_note=true')
+    expect(result.length).toBe(0)
+  })
+
+  // 添加组合过滤测试用例
+  it('should combine time and note filters', () => {
+    const combinedBookmarks: BookmarkKeyValuePair[] = [
+      ...mockBookmarks,
+      [
+        'https://example.com/4',
+        {
+          tags: ['docs'],
+          meta: {
+            title: 'Example 4',
+            note: 'Recent note',
+            created: Date.parse('2023-03-08'),
+            updated: Date.parse('2023-03-08'),
+          },
+        },
+      ],
+      [
+        'https://example.com/5',
+        {
+          tags: ['docs'],
+          meta: {
+            title: 'Example 5',
+            note: 'Old note',
+            created: Date.parse('2023-01-08'),
+            updated: Date.parse('2023-01-08'),
+          },
+        },
+      ],
+    ]
+
+    const mockDate = new Date('2023-03-12')
+    vi.useFakeTimers()
+    vi.setSystemTime(mockDate)
+
+    const result = filterBookmarksByUrlParams(
+      combinedBookmarks,
+      '?has_note=true&time=created&period=7d'
+    )
+    expect(result.length).toBe(1)
+    expect(result[0][1].meta.title).toBe('Example 4')
+
+    vi.useRealTimers()
+  })
+
+  it('should handle multiple filters with empty results', () => {
+    const result = filterBookmarksByUrlParams(
+      mockBookmarks,
+      '?has_note=true&time=created&period=1d'
+    )
+    expect(result.length).toBe(0)
+  })
+
   afterEach(() => {
     vi.restoreAllMocks()
   })

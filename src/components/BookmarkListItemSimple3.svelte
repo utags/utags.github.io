@@ -1,79 +1,62 @@
 <script>
   import Favicon from './Favicon.svelte'
-
   let { href, tags, title, formatedUpdated, dateTitleText } = $props()
 </script>
 
-<div class="list-simple group relative mx-[12px] p-2">
-  <div class="title flex items-center gap-2 truncate">
-    <Favicon {href} classNames="h-4 w-4 flex-none" />
-    <a {href} {title} target="_blank" rel="noopener">
-      <span>{title}</span>
-    </a>
-  </div>
-  <div class="url-path mt-1 truncate text-xs">
-    <a {href} target="_blank" rel="noopener"><span>{href}</span></a>
-  </div>
-  <div class="description mt-1 flex flex-wrap items-baseline gap-1 truncate">
-    <span class="tags flex flex-wrap gap-1 text-sm">
-      {#each tags as tag, i}
-        {#if i > 0}
-          <span class="sep"> / </span>
-        {/if}
-        <a href="#{encodeURIComponent(tag)}" class="tag"><span>{tag}</span></a>
-      {/each}
-    </span>
-    <span class="datetime text-gray-500" title={dateTitleText}
-      >{formatedUpdated}</span>
-    <span class="action">edit</span>
-    <span class="action">delete</span>
+<div
+  class="bookmark-item group relative px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800">
+  <div class="flex items-start gap-3">
+    <Favicon {href} classNames="h-4 w-4 mt-1 flex-none" />
+
+    <div class="min-w-0 flex-1">
+      <div class="flex items-baseline gap-2">
+        <a
+          {href}
+          {title}
+          target="_blank"
+          rel="noopener"
+          class="truncate text-sm font-medium text-blue-700 hover:underline dark:text-blue-400">
+          {title}
+        </a>
+        <span class="shrink-0 text-xs text-gray-500 dark:text-gray-400">
+          {formatedUpdated}
+        </span>
+      </div>
+
+      <div class="mt-1">
+        <a
+          {href}
+          target="_blank"
+          rel="noopener"
+          class="block truncate text-xs text-gray-600 hover:underline dark:text-gray-300">
+          {new URL(href).hostname}
+        </a>
+      </div>
+
+      {#if tags && tags.length > 0}
+        <div class="mt-1 flex flex-wrap gap-1">
+          {#each tags as tag}
+            <a
+              href="#{encodeURIComponent(tag)}"
+              class="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+              #{tag}
+            </a>
+          {/each}
+        </div>
+      {/if}
+    </div>
   </div>
 </div>
 
 <style>
-  .title {
-    position: relative;
+  .bookmark-item {
+    border-bottom: 1px solid #e0e0e0;
+    transition: background-color 0.2s ease;
   }
-  .title a {
-    color: #000;
-    display: block;
-    font-weight: 500;
-    overflow: hidden;
-    width: fit-content;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    opacity: 0.7;
-    transition: 0.2s all ease-out;
+  .bookmark-item:last-child {
+    border-bottom: none;
   }
-  .title a:hover {
-    opacity: 1;
-  }
-  .url-path {
-    opacity: 0.6;
-    color: #000;
-    transition: 0.2s all ease-out;
-  }
-  .url-path:hover {
-    opacity: 1;
-  }
-  .tag {
-    opacity: 0.6;
-    font-weight: inherit;
-    text-decoration: none;
-    border-bottom: 1px solid rgba(125, 125, 125, 0.3);
-    transition: border 0.2s ease-in-out;
-  }
-  .tag:hover {
-    border-bottom: 1px solid #555;
-  }
-
-  .sep {
-    opacity: 0.25;
-  }
-
-  .datetime,
-  .action {
-    color: #6b7280;
-    font-size: 13px;
+  :global(.dark) .bookmark-item {
+    border-bottom-color: #2d3748;
   }
 </style>

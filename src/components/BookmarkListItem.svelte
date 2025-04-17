@@ -6,6 +6,7 @@
   import BookmarkListItemSimple from './BookmarkListItemSimple.svelte'
   import BookmarkListItemSimple2 from './BookmarkListItemSimple2.svelte'
   import BookmarkListItemSimple3 from './BookmarkListItemSimple3.svelte'
+  import BookmarkListItemSimple4 from './BookmarkListItemSimple4.svelte'
 
   let { item, viewMode } = $props()
 
@@ -55,6 +56,13 @@
     {dateTitleText} />
 {:else if viewMode === 'simple3'}
   <BookmarkListItemSimple3
+    {href}
+    {tags}
+    {title}
+    {formatedUpdated}
+    {dateTitleText} />
+{:else if viewMode === 'simple4'}
+  <BookmarkListItemSimple4
     {href}
     {tags}
     {title}

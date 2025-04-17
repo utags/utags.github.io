@@ -3,6 +3,7 @@
     ChevronDown,
     ChevronRight,
     Bookmark,
+    BookmarkPlus,
     Tag,
     List,
     Clock,
@@ -51,6 +52,11 @@
       icon: 'bookmark',
       items: [
         { name: '所有书签', icon: 'list', href: '/#' },
+        {
+          name: '稍后阅读',
+          icon: 'bookmark-plus',
+          href: '/?filter=read-later#',
+        },
         { name: '笔记', icon: 'note', href: '/?has_note#' },
         { name: '最近添加', icon: 'clock', href: '?time=created&period=1m#' },
         { name: '最近修改', icon: 'clock', href: '?time=updated&period=1m#' },
@@ -131,6 +137,8 @@
                       <Globe size={16} />
                     {:else if item.icon === 'note'}
                       <NotebookPen size={16} />
+                    {:else if item.icon === 'bookmark-plus'}
+                      <BookmarkPlus size={16} />
                     {:else}
                       <Folder size={16} />
                     {/if}

@@ -48,3 +48,18 @@ export const initialBookmarks = {
     tags: ['Open Source', 'Browser Extension', 'Userscript'],
   },
 }
+
+// 使用的技术栈的链接
+// - svelte
+// - vite
+// - tailwindcss
+// - typescript
+// - lucide
+// - vitest
+// 文档链接
+// - docs.utags.link docs-zh.utags.link
+// - utags.link/docs
+// - utags.link/docs-zh
+// - utags.link/faq
+// - utags.link/faq-zh
+// - discussions url

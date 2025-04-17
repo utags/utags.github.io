@@ -2,10 +2,12 @@ import type { BookmarkKeyValuePair } from '../types/bookmarks.js'
 import { defaultFilterRegistry } from './filter-registry.js'
 import { createTimeCondition } from './filters/time-filter.js'
 import { createNoteCondition } from './filters/note-filter.js'
+import { createReadLaterCondition } from './filters/read-later-filter.js'
 
 defaultFilterRegistry
   .register('time', createTimeCondition)
   .register('has_note', createNoteCondition)
+  .register('filter', createReadLaterCondition)
 
 export function filterBookmarksByUrlParams(
   entries: BookmarkKeyValuePair[],
@@ -102,3 +104,4 @@ export function filterBookmarksByUrlParamsOld(
 // source=deleted
 // source=imported
 // source=synced
+// filter=!tag1,tag2

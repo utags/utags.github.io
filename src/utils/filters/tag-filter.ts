@@ -1,43 +1,54 @@
 import type { BookmarkMetadata } from '../../types/bookmarks.js'
 
-function parseTagGroups(params: URLSearchParams) {
-  const hasComma = params.getAll('t').some((t) => t.includes(','))
+type TagCondition = (
+  href: string,
+  tags: string[],
+  meta: BookmarkMetadata
+) => boolean
 
-  if (hasComma) {
-    return params
-      .getAll('t')
-      .map((tags) =>
-        tags
-          .split(',')
-          .map((tag) => tag.trim())
-          .filter(Boolean)
-      )
-      .filter((group) => group.length > 0)
-  }
-
-  return params
-    .getAll('t')
+function parseTags(tagString: string): string[] {
+  return tagString
+    .split(',')
     .map((tag) => tag.trim())
     .filter(Boolean)
 }
 
-export function createTagCondition(params: URLSearchParams) {
+function createAndCondition(requiredTags: string[]): TagCondition {
+  return (_, tags) => {
+    const tagSet = new Set(tags)
+    return requiredTags.every((tag) => tagSet.has(tag))
+  }
+}
+
+function createMixedCondition(tagGroups: string[][]): TagCondition {
+  return (_, tags) => {
+    const tagSet = new Set(tags)
+    return tagGroups.every((group) => group.some((tag) => tagSet.has(tag)))
+  }
+}
+
+export function createTagCondition(
+  params: URLSearchParams
+): TagCondition | undefined {
   if (!params.has('t')) return undefined
 
-  const conditionTags = parseTagGroups(params)
-  if (conditionTags.length === 0) return undefined
+  const tagValues = params.getAll('t')
+  const hasComma = tagValues.some((t) => t.includes(','))
 
-  if (Array.isArray(conditionTags) && typeof conditionTags[0] === 'string') {
-    // 纯AND模式
-    return (href: string, tags: string[], meta: BookmarkMetadata) => {
-      return conditionTags.every((tag) => tags.includes(tag as string))
-    }
+  if (hasComma) {
+    const tagGroups = [
+      ...new Map(
+        tagValues
+          .map(parseTags)
+          .filter((group) => group.length > 0)
+          .map((group) => [group.join(','), group])
+      ).values(),
+    ]
+    return tagGroups.length > 0 ? createMixedCondition(tagGroups) : undefined
   }
 
-  // 混合AND/OR模式
-  return (href: string, tags: string[], meta: BookmarkMetadata) => {
-    return conditionTags.every((tagGroup) =>
-      (tagGroup as string[]).some((tag) => tags.includes(tag))
-    )
-  }
+  const requiredTags = [
+    ...new Set(tagValues.map((tag) => tag.trim()).filter(Boolean)),
+  ]
+  return requiredTags.length > 0 ? createAndCondition(requiredTags) : undefined
 }

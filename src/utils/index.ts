@@ -3,6 +3,7 @@ import Console from 'console-tagger'
 import {
   HASH_DELIMITER,
   FILTER_DELIMITER,
+  OR_CONDITION_DELIMITER,
   defaultFavicons,
 } from '../config/constants.js'
 
@@ -163,12 +164,103 @@ export function convertToFilterString(
   keyword: string
 ) {
   const filterString = [
-    encodeURIComponent([...tags].join(',')),
-    encodeURIComponent([...domains].join(',')),
+    encodeURIComponent([...tags].join(OR_CONDITION_DELIMITER)),
+    encodeURIComponent([...domains].join(OR_CONDITION_DELIMITER)),
     encodeURIComponent(keyword.trim()),
   ].join(FILTER_DELIMITER)
 
   return filterString === '//' ? '' : filterString.replace(/[/#]+$/, '')
+}
+
+/**
+ * Converts a hash-based filter string into URLSearchParams format.
+ *
+ * This function takes a URL hash string containing filter information in the format
+ * `tag1%2Ctag2/example.com%2Ctest.com/keyword%20test` and converts it into URLSearchParams
+ * with the structure `t=tag1,tag2&d=example.com,test.com&q=keyword test`.
+ *
+ * @param {string|undefined} hash - The URL hash string containing filter information.
+ *                                 Expected format: `[encoded_tags]/[encoded_domains]/[encoded_keyword]`
+ * @returns {URLSearchParams} A URLSearchParams object containing the parsed filter parameters:
+ *                           - 't' parameter for tags (comma-separated)
+ *                           - 'd' parameter for domains (comma-separated)
+ *                           - 'q' parameter for search keyword
+ * @example
+ * // Returns URLSearchParams with 't=tag1,tag2&d=example.com,test.com&q=keyword test'
+ * parseHashFiltersToSearchParams('tag1%2Ctag2/example.com%2Ctest.com/keyword%20test');
+ *
+ * @example
+ * // Returns URLSearchParams with 't=tag1,tag2&d=example.com,test.com&q=keyword test&t=tag3,tag4&d=example.net,test.net&q=keyword test2'
+ * parseHashFiltersToSearchParams('tag1%2Ctag2/example.com%2Ctest.com/keyword%20test#tag3%2Ctag4/example.net%2Ctest.net/keyword%20test2');
+ *
+ * @example
+ * // Returns empty URLSearchParams
+ * parseHashFiltersToSearchParams('');
+ */
+export function parseHashFiltersToSearchParams(
+  hash: string | undefined
+): URLSearchParams {
+  const searchParams = new URLSearchParams()
+
+  if (!hash?.trim()) return searchParams
+
+  const filterStrings = hash.split(HASH_DELIMITER).filter(Boolean)
+
+  for (const filterString of filterStrings) {
+    const filter = parseFilterString(filterString)
+    if (!filter) continue
+
+    const { selectedTags, selectedDomains, searchKeyword } = filter
+
+    if (selectedTags.size > 0) {
+      searchParams.append(
+        't',
+        Array.from(selectedTags).join(OR_CONDITION_DELIMITER)
+      )
+    }
+
+    if (selectedDomains.size > 0) {
+      searchParams.append(
+        'd',
+        Array.from(selectedDomains).join(OR_CONDITION_DELIMITER)
+      )
+    }
+
+    if (searchKeyword) {
+      searchParams.append('q', searchKeyword)
+    }
+  }
+
+  return searchParams
+}
+
+/**
+ * Extracts filter parameters from URL hash and merges them into URL search parameters.
+ *
+ * This function takes a URL string, extracts the hash portion containing filter parameters,
+ * converts them to URLSearchParams format using parseHashFiltersToSearchParams,
+ * and merges them into the existing URL search parameters.
+ *
+ * @param {string} href - The URL string containing both search parameters and hash
+ * @returns {void} Modifies the URL's search parameters in place by merging hash parameters
+ * @example
+ * // For URL 'https://example.com?existing=param#tag1,tag2/domain.com/keyword'
+ * // Will merge hash parameters into search params as 'existing=param&t=tag1,tag2&d=domain.com&q=keyword'
+ * mergeHashFiltersIntoSearchParams('https://example.com?existing=param#tag1,tag2/domain.com/keyword');
+ */
+export function mergeHashFiltersIntoSearchParams(
+  href: string
+): URLSearchParams {
+  const url = new URL(href)
+  const searchParams = url.searchParams
+  const hash = url.hash
+  const searchParams2 = parseHashFiltersToSearchParams(hash)
+  for (const [key, value] of searchParams2.entries()) {
+    searchParams.append(key, value)
+  }
+
+  console.log(searchParams.toString())
+  return searchParams
 }
 
 export function getHostName(href: string) {

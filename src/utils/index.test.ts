@@ -5,6 +5,7 @@ import {
   cleanFilterString,
   parseFilterString,
   convertToFilterString,
+  parseHashFiltersToSearchParams,
 } from './index.js'
 
 describe('humanizeUrl', () => {
@@ -168,5 +169,93 @@ describe('convertToFilterString', () => {
     expect(
       convertToFilterString(new Set(), new Set(['domain']), 'keyword')
     ).toBe(`${FILTER_DELIMITER}domain${FILTER_DELIMITER}keyword`)
+  })
+})
+
+describe('parseHashFiltersToSearchParams', () => {
+  it('should return empty URLSearchParams for empty hash', () => {
+    const result = parseHashFiltersToSearchParams('')
+    expect(result.toString()).toBe('')
+  })
+
+  it('should return empty URLSearchParams for undefined hash', () => {
+    const result = parseHashFiltersToSearchParams(undefined)
+    expect(result.toString()).toBe('')
+  })
+
+  it('should parse single filter string correctly', () => {
+    const result = parseHashFiltersToSearchParams(
+      'tag1%2Ctag2/example.com/keyword'
+    )
+    expect(result.get('t')).toBe('tag1,tag2')
+    expect(result.get('d')).toBe('example.com')
+    expect(result.get('q')).toBe('keyword')
+  })
+
+  it('should handle multiple filter strings separated by hash delimiter', () => {
+    const result = parseHashFiltersToSearchParams(
+      'tag1%2Ctag2/example.com/keyword#tag3/example2.com/keyword2'
+    )
+    expect(result.getAll('t')).toEqual(['tag1,tag2', 'tag3'])
+    expect(result.getAll('d')).toEqual(['example.com', 'example2.com'])
+    expect(result.getAll('q')).toEqual(['keyword', 'keyword2'])
+  })
+
+  // 新增中文标签和关键字的测试用例
+  it('should handle Chinese tags and keywords', () => {
+    const result = parseHashFiltersToSearchParams(
+      '%E5%89%8D%E7%AB%AF%2C%E6%B5%8B%E8%AF%95/example.com/%E4%B8%AD%E6%96%87%E5%85%B3%E9%94%AE%E5%AD%97#%E5%90%8E%E7%AB%AF/example.cn/%E6%90%9C%E7%B4%A2'
+    )
+    expect(result.getAll('t')).toEqual(['前端,测试', '后端'])
+    expect(result.getAll('d')).toEqual(['example.com', 'example.cn'])
+    expect(result.getAll('q')).toEqual(['中文关键字', '搜索'])
+  })
+
+  // 新增混合语言标签的测试用例
+  it('should handle mixed language tags', () => {
+    const result = parseHashFiltersToSearchParams(
+      '前端%2Cbug%2C%E3%83%86%E3%82%B9%E3%83%88/example.com/keyword#%ED%95%9C%EA%B8%80/example.co.kr/%ED%82%A4%EC%9B%8C%EB%93%9C'
+    )
+    expect(result.getAll('t')).toEqual(['前端,bug,テスト', '한글'])
+    expect(result.getAll('d')).toEqual(['example.com', 'example.co.kr'])
+    expect(result.getAll('q')).toEqual(['keyword', '키워드'])
+  })
+
+  it('should handle missing tags section', () => {
+    const result = parseHashFiltersToSearchParams('/example.com/keyword')
+    expect(result.get('t')).toBeNull()
+    expect(result.get('d')).toBe('example.com')
+    expect(result.get('q')).toBe('keyword')
+  })
+
+  it('should handle missing domains section', () => {
+    const result = parseHashFiltersToSearchParams('tag1%2Ctag2//keyword')
+    expect(result.get('t')).toBe('tag1,tag2')
+    expect(result.get('d')).toBeNull()
+    expect(result.get('q')).toBe('keyword')
+  })
+
+  it('should handle missing keyword section', () => {
+    const result = parseHashFiltersToSearchParams('tag1%2Ctag2/example.com/')
+    expect(result.get('t')).toBe('tag1,tag2')
+    expect(result.get('d')).toBe('example.com')
+    expect(result.get('q')).toBeNull()
+  })
+
+  it('should handle empty sections', () => {
+    const result = parseHashFiltersToSearchParams('//')
+    expect(result.get('t')).toBeNull()
+    expect(result.get('d')).toBeNull()
+    expect(result.get('q')).toBeNull()
+  })
+
+  it('should handle whitespace-only hash', () => {
+    const result = parseHashFiltersToSearchParams('   ')
+    expect(result.toString()).toBe('')
+  })
+
+  it('should handle malformed filter strings', () => {
+    const result = parseHashFiltersToSearchParams('///invalid-filter-string')
+    expect(result.toString()).toBe('')
   })
 })

@@ -3,7 +3,8 @@
   let { href, tags, title, formatedUpdated, dateTitleText } = $props()
 </script>
 
-<div class="delicious-item group relative px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800">
+<div
+  class="delicious-item group relative px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800">
   <div class="flex flex-col gap-1">
     <div class="flex items-center gap-2">
       <Favicon {href} classNames="h-4 w-4 flex-none" />
@@ -12,7 +13,7 @@
         {title}
         target="_blank"
         rel="noopener"
-        class="text-base font-medium text-gray-900 hover:text-blue-600 dark:text-gray-100 dark:hover:text-blue-400 truncate">
+        class="truncate text-base font-medium text-gray-900 hover:text-blue-600 dark:text-gray-100 dark:hover:text-blue-400">
         {title}
       </a>
     </div>
@@ -22,7 +23,7 @@
         {href}
         target="_blank"
         rel="noopener"
-        class="text-gray-600 hover:underline dark:text-gray-400 truncate">
+        class="truncate text-gray-600 hover:underline dark:text-gray-400">
         {new URL(href).hostname}
       </a>
       <span class="text-gray-400 dark:text-gray-500">·</span>

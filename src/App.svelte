@@ -22,11 +22,14 @@
 
   import Toolbar from './components/Toolbar.svelte'
   import { settings, bookmarks, exportData } from './stores/stores.js'
+  import initializeStores from './stores/initialize-stores.js'
 
   const console = new Console({
     prefix: 'app',
     color: { line: 'white', background: 'red' },
   })
+
+  initializeStores()
 
   // let originalBookmarks = $derived(Object.entries($bookmarks.data))
   let originalBookmarks = $derived(

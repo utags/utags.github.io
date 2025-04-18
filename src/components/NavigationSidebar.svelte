@@ -15,6 +15,7 @@
     PanelLeftClose,
   } from 'lucide-svelte'
   import { settings } from '../stores/stores'
+  import Collections from './Collections.svelte'
   import SavedFilters from './SavedFilters.svelte'
 
   // 导航组数据结构
@@ -150,6 +151,7 @@
           {/if}
         </div>
       {/each}
+      <Collections />
       <SavedFilters />
     </nav>
   {/if}

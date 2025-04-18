@@ -6,7 +6,6 @@ import { initialBookmarks as initialBookmarksCN } from '../data/initial-bookmark
 import {
   STORAGE_KEY_BOOKMARKS,
   STORAGE_KEY_SETTINGS,
-  STORAGE_KEY_FILTERS,
 } from '../config/constants.js'
 import { type BookmarksStore, type BookmarksData } from '../types/bookmarks.js'
 import { sortBookmarks } from '../utils/sort-bookmarks.js'
@@ -36,21 +35,6 @@ export const settings = persisted(STORAGE_KEY_SETTINGS, {
     addButton: true,
   },
 })
-
-if (!get(settings).headerToolbarSettings) {
-  const $settings = get(settings)
-  const headerToolbarSettings = {
-    theme: false,
-    sortBy: true,
-    sidebarPosition: false,
-    viewMode: true,
-    skin: true,
-    addButton: true,
-  }
-  settings.set({ ...$settings, headerToolbarSettings })
-}
-
-export const filters = persisted(STORAGE_KEY_FILTERS, [])
 
 let isBookmarksDataReady = false
 

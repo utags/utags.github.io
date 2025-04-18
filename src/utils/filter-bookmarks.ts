@@ -3,11 +3,13 @@ import { defaultFilterRegistry } from './filter-registry.js'
 import { createTimeCondition } from './filters/time-filter.js'
 import { createNoteCondition } from './filters/note-filter.js'
 import { createReadLaterCondition } from './filters/read-later-filter.js'
+import { createTagFilterCondition } from './filters/tag-filter.js'
 
 defaultFilterRegistry
   .register('time', createTimeCondition)
   .register('has_note', createNoteCondition)
   .register('filter', createReadLaterCondition)
+  .register('t', createTagFilterCondition)
 
 export function filterBookmarksByUrlParams(
   entries: BookmarkKeyValuePair[],

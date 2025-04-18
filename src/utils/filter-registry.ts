@@ -11,11 +11,10 @@ import type {
  * @param params - URL search parameters for filter configuration
  * @returns Boolean indicating whether the bookmark matches the condition
  */
-type FilterCondition = (
+export type FilterCondition = (
   href: string,
   tags: string[],
-  meta: BookmarkMetadata,
-  params: URLSearchParams
+  meta: BookmarkMetadata
 ) => boolean
 
 /**
@@ -65,7 +64,7 @@ export default class FilterRegistry {
     if (activeConditions.length === 0) return entries
 
     return entries.filter(([href, { tags, meta }]) =>
-      activeConditions.every((condition) => condition(href, tags, meta, params))
+      activeConditions.every((condition) => condition(href, tags, meta))
     )
   }
 }

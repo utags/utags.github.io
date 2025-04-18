@@ -291,3 +291,19 @@ export function getFaviconUrl(href: string, size: 16 | 32 | 64 = 16) {
   const wrapUrl = `https://wsrv.nl/?w=${size}&h=${size}&url=${encodeURIComponent(url)}&default=${defaultFavicons[size]}`
   return wrapUrl
 }
+
+/**
+ * Normalizes and deduplicates an array of strings by:
+ * 1. Trimming whitespace from each string
+ * 2. Filtering out empty strings
+ * 3. Removing duplicate strings (case-sensitive)
+ *
+ * @param {string[]} strings - Array of strings to process
+ * @returns {string[]} New array with unique, non-empty, trimmed strings
+ * @example
+ * // Returns ['tag1', 'tag2', 'tag3']
+ * normalizeAndDeduplicateStrings([' tag1', 'tag2 ', ' tag1 ', '', 'tag3'])
+ */
+export const normalizeAndDeduplicateStrings = (strings: string[]): string[] => [
+  ...new Set(strings.map((string) => string.trim()).filter(Boolean)),
+]

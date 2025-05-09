@@ -2,8 +2,6 @@ import { get } from 'svelte/store'
 import { persisted, type Persisted } from 'svelte-persisted-store'
 import Console from 'console-tagger'
 import { addEventListener } from 'browser-extension-utils'
-import { initialBookmarks } from '../data/initial-bookmarks.js'
-import { initialBookmarks as initialBookmarksCN } from '../data/initial-bookmarks-zh-CN.js'
 import {
   STORAGE_KEY_BOOKMARKS,
   STORAGE_KEY_SETTINGS,
@@ -85,17 +83,6 @@ function initializeBookmarks() {
     },
   })
 
-  // 首次访问检测并添加示例数据
-  const bookmarksRaw = get(bookmarks)
-  const $settings = get(settings)
-  if (Object.keys(bookmarksRaw.data).length === 0 && $settings.isFirstRun) {
-    $settings.isFirstRun = false
-    bookmarksRaw.data = initialBookmarksCN
-    // $settings.lang === 'zh-CN' ? initialBookmarksCN : initialBookmarks
-    settings.set($settings)
-    bookmarks.set(bookmarksRaw)
-  }
-
   const event = new CustomEvent('bookmarksInitialized')
   globalThis.dispatchEvent(event)
   isBookmarksDataReady = true
@@ -107,8 +94,10 @@ setTimeout(initializeBookmarks, 1000)
 // when update in BookmarkStorage.ts
 addEventListener(globalThis, 'updateBookmarksStore', async () => {
   const bookmarksRaw = await bookmarkStorage.getBookmarksStore()
-  // 触发响应式更新
-  bookmarks.set(bookmarksRaw)
+  if (isBookmarksDataReady) {
+    // 触发响应式更新
+    bookmarks.set(bookmarksRaw)
+  }
 })
 
 export function exportData(bookmarksData: BookmarksData) {

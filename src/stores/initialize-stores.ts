@@ -2,6 +2,8 @@ import { get } from 'svelte/store'
 import { settings } from './stores.js'
 import { getCollections } from './collections.js'
 import { filters } from './saved-filters.js'
+import { initialBookmarks } from '../data/initial-bookmarks.js'
+import { initialBookmarks as initialBookmarksCN } from '../data/initial-bookmarks-zh-CN.js'
 import { releaseNotes } from '../data/release-notes'
 import { releaseNotes as releaseNotesCN } from '../data/release-notes-zh-CN'
 import { bookmarkStorage } from '../lib/bookmark-storage'
@@ -21,11 +23,20 @@ function initializeSettings() {
     }
     settings.set({ ...$settings, headerToolbarSettings })
   }
+
+  if ($settings.isFirstRun) {
+    $settings.isFirstRun = false
+    settings.set($settings)
+  }
 }
 
-function initializeBookmarks() {
-  const releaseNotesBookmarks = Object.entries(releaseNotesCN)
-  bookmarkStorage.updateBookmarks(releaseNotesBookmarks)
+async function initializeBookmarks() {
+  if (get(settings).isFirstRun) {
+    // Initial bookmarks
+    await bookmarkStorage.updateBookmarks(Object.entries(initialBookmarksCN))
+  }
+  // Release notes
+  await bookmarkStorage.updateBookmarks(Object.entries(releaseNotesCN))
 }
 
 function initializeCollections() {
@@ -91,10 +102,10 @@ function initializeFilters() {
   }
 }
 
-export default function initializeStores() {
+export default async function initializeStores() {
   const $settings = get(settings)
 
-  initializeBookmarks()
+  await initializeBookmarks()
 
   // only run once
   if ($settings.isFirstRun) {

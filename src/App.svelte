@@ -30,6 +30,7 @@
   import CompositeFilters from './components/CompositeFilters.svelte'
   import BatchTagAddModal from './components/BatchTagAddModal.svelte'
   import BatchTagRemoveModal from './components/BatchTagRemoveModal.svelte'
+  import ConfirmModal from './components/ConfirmModal.svelte'
 
   import Toolbar from './components/Toolbar.svelte'
   import { settings, bookmarks, exportData } from './stores/stores.js'
@@ -358,6 +359,7 @@
   let selectedBookmarkUrls = $state<string[]>([])
   let showBatchTagAddModal = $state(false)
   let showBatchTagRemoveModal = $state(false)
+  let showBatchDeleteConfirmModal = $state(false)
 
   /**
    * Handle selection mode change from toolbar
@@ -404,6 +406,34 @@
   function handleBatchRemoveTag(event: CustomEvent) {
     selectedBookmarkUrls = event.detail.selectedBookmarkUrls
     showBatchTagRemoveModal = true
+  }
+
+  /**
+   * Handle batch bookmark delete event from BookmarkList
+   * @param event - Custom event containing selected bookmark URLs
+   */
+  function handleBatchDeleteBookmarks(event: CustomEvent) {
+    selectedBookmarkUrls = event.detail.selectedBookmarkUrls
+    showBatchDeleteConfirmModal = true
+  }
+
+  /**
+   * Delete selected bookmarks after confirmation
+   */
+  function confirmBatchDeleteBookmarks() {
+    if (selectedBookmarkUrls.length === 0) return
+
+    // Delete each selected bookmark
+    selectedBookmarkUrls.forEach((url) => {
+      delete $bookmarks.data[url]
+    })
+
+    // Update bookmarks store
+    bookmarks.set($bookmarks)
+
+    // Close modal and reset selection
+    showBatchDeleteConfirmModal = false
+    selectedBookmarkUrls = []
   }
 </script>
 
@@ -478,7 +508,8 @@
         on:selectionChange={handleSelectionChange}
         on:batchAddTag={handleBatchAddTag}
         on:batchRemoveTag={handleBatchRemoveTag}
-        on:batchTagEdit={handleBatchTagEdit} />
+        on:batchTagEdit={handleBatchTagEdit}
+        on:batchDeleteBookmarks={handleBatchDeleteBookmarks} />
       <AddBookmark
         bind:show={showAddBookmarkModal}
         initialData={editBookmarkData} />
@@ -488,6 +519,13 @@
       <BatchTagRemoveModal
         {selectedBookmarkUrls}
         bind:isOpen={showBatchTagRemoveModal} />
+      <ConfirmModal
+        title="批量删除书签"
+        message={`确定要删除选中的 ${selectedBookmarkUrls.length} 个书签吗？此操作不可撤销。`}
+        confirmText="删除"
+        cancelText="取消"
+        bind:isOpen={showBatchDeleteConfirmModal}
+        onConfirm={confirmBatchDeleteBookmarks} />
     </div>
   </div>
 </main>

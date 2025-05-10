@@ -188,6 +188,16 @@
     dispatch('batchRemoveTag', { selectedBookmarkUrls })
   }
 
+  /**
+   * Start batch bookmark deletion for selected bookmarks
+   * Dispatches an event to parent component to handle deletion
+   */
+  function startBatchDeleteBookmarks() {
+    if (selectedBookmarkUrls.length === 0) return
+
+    dispatch('batchDeleteBookmarks', { selectedBookmarkUrls })
+  }
+
   // Reset selection when filtered bookmarks change
   $effect(() => {
     console.log('reset selection when filtered bookmarks change')
@@ -248,6 +258,12 @@
           disabled={selectedCount === 0}
           onclick={startBatchTagEdit}>
           批量修改标签
+        </button>
+        <button
+          class="rounded-md bg-red-700 px-3 py-1 text-sm text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-800 dark:hover:bg-red-700"
+          disabled={selectedCount === 0}
+          onclick={startBatchDeleteBookmarks}>
+          批量删除书签
         </button>
       </div>
     </div>

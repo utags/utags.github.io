@@ -1,4 +1,16 @@
 export const releaseNotes = {
+  'https://utags.link/#releas-notes//v0.4': {
+    meta: {
+      title: 'Release Notes - v0.4',
+      note: `
+- 新增批量删除书签功能
+- 添加书签时，使用高级标签输入框
+      `,
+      created: new Date('2025-05-10T13:30:00.000Z').getTime(),
+      updated: new Date('2025-05-10T13:30:00.000Z').getTime(),
+    },
+    tags: ['releas-notes', 'utags'],
+  },
   'https://utags.link/#releas-notes//v0.3': {
     meta: {
       title: 'Release Notes - v0.3',

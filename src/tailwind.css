@@ -60,16 +60,19 @@ button {
   @apply text-sm font-medium text-gray-700 dark:text-gray-300;
 }
 @utility base-input-element {
-  @apply w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-2.5 transition-all outline-none focus:border-indigo-500 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:focus:border-indigo-500;
+  @apply w-full rounded-md border border-gray-200 bg-white px-4 py-2.5 text-xs transition-all outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:focus:border-blue-500;
   &:disabled {
-    @apply cursor-not-allowed bg-gray-100 dark:bg-gray-700/20;
+    @apply cursor-not-allowed bg-gray-100 opacity-70 dark:bg-gray-700/20;
   }
 }
 
 @utility base-merge-mode-input-element {
   @apply border-amber-300 bg-amber-100 dark:border-amber-600 dark:bg-amber-700/20;
   &:disabled {
-    @apply cursor-default;
+    @apply cursor-default opacity-70;
+  }
+  &:not(:disabled):is(input) {
+    @apply focus:ring-1 focus:ring-amber-300 dark:focus:ring-amber-600;
   }
 }
 

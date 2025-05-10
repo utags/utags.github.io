@@ -6,11 +6,13 @@
     id = '',
     tags = $bindable([]),
     placeholder = '输入标签，按回车添加',
+    class: clazz = '',
     disabled = false,
   }: {
     id?: string
     tags?: string[]
     placeholder?: string
+    class?: string
     disabled?: boolean
   } = $props()
 
@@ -282,7 +284,10 @@
 </script>
 
 <div
-  class="tag-input-container flex flex-wrap items-center gap-2 rounded-md border border-gray-300 bg-white p-2 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+  class="tag-input-container flex flex-wrap items-center gap-2 rounded-md border border-gray-300 bg-white p-2 dark:border-gray-600 dark:bg-gray-700 {clazz}"
+  class:focus-within:border-blue-500={!disabled}
+  class:focus-within:ring-1={!disabled}
+  class:focus-within:ring-blue-500={!disabled}
   class:cursor-not-allowed={disabled}
   class:opacity-70={disabled}
   onclick={focusInput}
@@ -308,7 +313,9 @@
           onclick={(e) => e.stopPropagation()} />
       {:else}
         <span
-          class="group relative cursor-pointer rounded px-0.5 transition-colors hover:bg-blue-200 dark:hover:bg-blue-800/30"
+          class="group relative rounded px-0.5 transition-colors {!disabled
+            ? 'cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-800/30'
+            : 'cursor-inherit'}"
           onclick={(e) => {
             e.stopPropagation()
             // Use setTimeout with 210ms delay to ensure previous editing tag input blur event to finish
@@ -325,19 +332,21 @@
           }}
           role="button"
           tabindex="0"
-          title="点击编辑标签">
+          title={disabled ? '' : '点击编辑标签'}>
           {tag}
-          <span
-            class="absolute top-0 right-0 -mt-2 -mr-2 hidden text-blue-500 group-hover:inline-block dark:text-blue-400">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-2.5 w-2.5"
-              viewBox="0 0 20 20"
-              fill="currentColor">
-              <path
-                d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-            </svg>
-          </span>
+          {#if !disabled}
+            <span
+              class="absolute top-0 right-0 -mt-2 -mr-2 hidden text-blue-500 group-hover:inline-block dark:text-blue-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-2.5 w-2.5"
+                viewBox="0 0 20 20"
+                fill="currentColor">
+                <path
+                  d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+              </svg>
+            </span>
+          {/if}
         </span>
       {/if}
       {#if !disabled}
@@ -405,17 +414,20 @@
       {/if}
     </div>
   {/each}
-  <input
-    bind:this={inputElement}
-    {id}
-    type="text"
-    class="flex-grow border-none bg-transparent px-0 py-0.5 text-xs text-gray-700 outline-none placeholder:text-gray-400 dark:text-gray-300 dark:placeholder:text-gray-500"
-    class:shake-animation={isInputShaking}
-    placeholder={tags.length === 0 ? placeholder : ''}
-    bind:value={inputValue}
-    onkeydown={handleKeydown}
-    onpaste={handlePaste}
-    {disabled} />
+  {#if !(disabled && tags.length > 0)}
+    <input
+      bind:this={inputElement}
+      {id}
+      type="text"
+      class="flex-grow border-none bg-transparent px-0 py-0.5 text-xs text-gray-700 outline-none placeholder:text-gray-400 dark:text-gray-300 dark:placeholder:text-gray-500"
+      class:cursor-not-allowed={disabled}
+      class:shake-animation={isInputShaking}
+      placeholder={tags.length === 0 ? placeholder : ''}
+      bind:value={inputValue}
+      onkeydown={handleKeydown}
+      onpaste={handlePaste}
+      {disabled} />
+  {/if}
 </div>
 
 <style>

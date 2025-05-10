@@ -9,6 +9,7 @@
   import Modal from './Modal.svelte'
   import InputField from './ui/InputField.svelte'
   import BaseInputField from './ui/BaseInputField.svelte'
+  import TagInput from './TagInput.svelte'
   import type { BookmarksStore, BookmarkEntry } from '../types/bookmarks'
 
   interface Props {
@@ -29,9 +30,8 @@
   let url = $state<string>('')
   let title = $state<string>('')
   let title2 = $state<string>('')
-  let tags = $state<string>('')
-  let tags2 = $state<string>('')
   let tagsArray = $state<string[]>([])
+  let tagsArray2 = $state<string[]>([])
   let error = $state<string>('')
   let tagError = $state<string>('')
   let lastUrl = $state<string | undefined>()
@@ -117,7 +117,7 @@
           note2 = entry.meta.note || ''
           favicon2 = entry.meta.favicon || ''
           coverImage2 = entry.meta.coverImage || ''
-          tags2 = entry.tags.join(', ')
+          tagsArray2 = entry.tags
         } else {
           // 添加模式或编辑模式开始时
           if (entry && url !== lastUrl) {
@@ -129,7 +129,7 @@
             note = entry.meta.note || ''
             favicon = entry.meta.favicon || ''
             coverImage = entry.meta.coverImage || ''
-            tags = entry.tags.join(', ')
+            tagsArray = entry.tags
             showAdvancedFields =
               $settings.alwaysShowAdvancedFields ||
               !!description ||
@@ -149,18 +149,13 @@
       lastUrl = url
       return true
     } catch {
+      lastUrl = undefined
       error = '请输入有效的URL格式（例如: https://example.com）'
       return false
     }
   }
 
   function validateTags(): boolean {
-    if (!tags) {
-      tagError = '至少需要输入一个标签'
-      return false
-    }
-
-    tagsArray = splitTags(tags)
     if (tagsArray.length === 0) {
       tagError = '至少需要输入一个标签，请使用逗号分隔多个标签'
       return false
@@ -241,8 +236,6 @@
     url =
       title =
       title2 =
-      tags =
-      tags2 =
       description =
       description2 =
       note =
@@ -262,6 +255,7 @@
     initialData = undefined
     isMergeMode = false
     tagsArray = []
+    tagsArray2 = []
   }
 
   function close(): void {
@@ -282,7 +276,7 @@
   onClose={close}
   onInputEnter={addBookmark}
   onConfirm={addBookmark}
-  disableConfirm={!url || !tags}
+  disableConfirm={!url || tagsArray.length === 0}
   confirmText="保存">
   <InputField
     id="url-input"
@@ -293,24 +287,32 @@
     onBlur={() => setTimeout(validateUrl)}>
     URL:
   </InputField>
-  <InputField
-    id="tags-input"
-    bind:value={tags}
-    placeholder="工作,技术,重要"
-    disabled={!url}
-    error={tagError}
-    onInput={() => (tagError = '')}
-    onBlur={validateTags}>
-    标签（逗号分隔）:
-  </InputField>
-  <BaseInputField
-    show={isMergeMode}
-    id="tags-input-2"
-    bind:value={tags2}
-    classNames="merge-mode-input-element"
-    disabled
-    placeholder="">
-  </BaseInputField>
+  <div class="mb-4">
+    <label
+      for="tags-input"
+      class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+      标签（逗号分隔）:
+    </label>
+    <TagInput
+      id="tags-input"
+      bind:tags={tagsArray}
+      placeholder="输入标签，按回车添加"
+      disabled={!url} />
+    {#if tagError && tagsArray.length === 0}
+      <p class="mt-1 text-sm text-red-600 dark:text-red-400">{tagError}</p>
+    {/if}
+  </div>
+  {#if isMergeMode}
+    <div class="mb-4">
+      <TagInput
+        id="tags-input-2"
+        bind:tags={tagsArray2}
+        placeholder=""
+        class="merge-mode-input-element !cursor-default !opacity-70"
+        disabled />
+    </div>
+  {/if}
+
   <BaseInputField
     id="title-input"
     bind:value={title}

@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type { BookmarkKeyValuePair } from '../types/bookmarks.js'
 import {
   CommandManager,
   AddTagCommand,
   RemoveTagCommand,
   RenameTagCommand,
   CompositeTagCommand,
-} from './tag-commands'
-import type { BookmarkKeyValuePair } from '../types/bookmarks'
+} from './tag-commands.js'
 
 describe('CommandManager', () => {
   // 测试数据
@@ -224,14 +224,15 @@ describe('CommandManager', () => {
       expect(persistCallback).not.toHaveBeenCalled()
     })
 
-    it('应该限制历史记录大小', () => {
+    it('应该限制历史记录大小', async () => {
       // 设置较小的历史记录限制
       commandManager.setMaxHistorySize(3)
 
       // 创建多个命令并执行
       for (let i = 0; i < 5; i++) {
         const command = new AddTagCommand(testBookmarks, `tag-${i}`)
-        commandManager.executeCommand(command, testBookmarks)
+        // eslint-disable-next-line no-await-in-loop
+        await commandManager.executeCommand(command, testBookmarks)
       }
 
       // 验证历史记录被限制
@@ -239,8 +240,12 @@ describe('CommandManager', () => {
     })
 
     it('应该拒绝无效的历史记录大小', () => {
-      expect(() => commandManager.setMaxHistorySize(0)).toThrow()
-      expect(() => commandManager.setMaxHistorySize(-1)).toThrow()
+      expect(() => {
+        commandManager.setMaxHistorySize(0)
+      }).toThrow()
+      expect(() => {
+        commandManager.setMaxHistorySize(-1)
+      }).toThrow()
     })
 
     it('应该能清除历史记录', async () => {

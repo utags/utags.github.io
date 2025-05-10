@@ -1,12 +1,12 @@
 import { get } from 'svelte/store'
-import { settings } from './stores.js'
-import { getCollections } from './collections.js'
-import { filters } from './saved-filters.js'
 import { initialBookmarks } from '../data/initial-bookmarks.js'
 import { initialBookmarks as initialBookmarksCN } from '../data/initial-bookmarks-zh-CN.js'
-import { releaseNotes } from '../data/release-notes'
-import { releaseNotes as releaseNotesCN } from '../data/release-notes-zh-CN'
-import { bookmarkStorage } from '../lib/bookmark-storage'
+import { releaseNotes } from '../data/release-notes.js'
+import { releaseNotes as releaseNotesCN } from '../data/release-notes-zh-CN.js'
+import { bookmarkStorage } from '../lib/bookmark-storage.js'
+import { filters } from './saved-filters.js'
+import { getCollections } from './collections.js'
+import { settings } from './stores.js'
 
 function initializeSettings() {
   console.log('initializing settings')

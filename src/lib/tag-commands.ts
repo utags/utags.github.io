@@ -1,11 +1,11 @@
 import { splitTags } from 'utags-utils'
-import type { BookmarkKeyValuePair } from '../types/bookmarks'
+import type { BookmarkKeyValuePair } from '../types/bookmarks.js'
 import { normalizeAndDeduplicateStrings } from '../utils/index.js'
 
 /**
  * Tag Command Interface - Base interface for all tag operation commands
  */
-export interface TagCommand {
+export type TagCommand = {
   /**
    * Execute the command
    * @returns Map of affected bookmark URLs and their original tags, for undo operations
@@ -50,9 +50,10 @@ export interface TagCommand {
  * Base Tag Command - Abstract base class for tag commands with common functionality
  */
 export abstract class BaseTagCommand implements TagCommand {
+  // eslint-disable-next-line @typescript-eslint/parameter-properties
   protected bookmarks: BookmarkKeyValuePair[]
   protected sourceTags: string[]
-  private timestamp: number
+  private readonly timestamp: number
 
   /**
    * Create a base tag command
@@ -71,28 +72,17 @@ export abstract class BaseTagCommand implements TagCommand {
   }
 
   /**
-   * Execute tag operation (to be implemented by subclasses)
-   * @returns Map of affected bookmark URLs and their original tags
-   */
-  abstract execute(): Map<string, string[]>
-
-  /**
    * Undo tag operation
    * @param affected Map of affected bookmark URLs and their original tags
    */
   undo(affected: Map<string, string[]>): void {
-    this.bookmarks.forEach((bookmark) => {
+    for (const bookmark of this.bookmarks) {
       if (affected.has(bookmark[0])) {
         // Restore original tags
         bookmark[1].tags = [...affected.get(bookmark[0])!]
       }
-    })
+    }
   }
-
-  /**
-   * Get command type (to be implemented by subclasses)
-   */
-  abstract getType(): 'add' | 'remove' | 'rename'
 
   /**
    * Get source tags
@@ -113,6 +103,17 @@ export abstract class BaseTagCommand implements TagCommand {
   getTimestamp(): number {
     return this.timestamp
   }
+
+  /**
+   * Execute tag operation (to be implemented by subclasses)
+   * @returns Map of affected bookmark URLs and their original tags
+   */
+  abstract execute(): Map<string, string[]>
+
+  /**
+   * Get command type (to be implemented by subclasses)
+   */
+  abstract getType(): 'add' | 'remove' | 'rename'
 }
 
 /**
@@ -120,22 +121,13 @@ export abstract class BaseTagCommand implements TagCommand {
  */
 export class AddTagCommand extends BaseTagCommand {
   /**
-   * Create an add tag command
-   * @param bookmarks Array of bookmarks to operate on
-   * @param tags Tag or tags to add (string or string array)
-   */
-  constructor(bookmarks: BookmarkKeyValuePair[], tags: string | string[]) {
-    super(bookmarks, tags)
-  }
-
-  /**
    * Execute add tag operation
    * @returns Map of affected bookmark URLs and their original tags
    */
   execute(): Map<string, string[]> {
     const affected = new Map<string, string[]>()
 
-    this.bookmarks.forEach((bookmark) => {
+    for (const bookmark of this.bookmarks) {
       // Check if any of the tags need to be added
       const tagsToAdd = this.sourceTags.filter(
         (tag) => !bookmark[1].tags.includes(tag)
@@ -147,7 +139,7 @@ export class AddTagCommand extends BaseTagCommand {
         // Add tags
         bookmark[1].tags = [...bookmark[1].tags, ...tagsToAdd]
       }
-    })
+    }
 
     return affected
   }
@@ -169,15 +161,6 @@ export class AddTagCommand extends BaseTagCommand {
  */
 export class RemoveTagCommand extends BaseTagCommand {
   /**
-   * Create a remove tag command
-   * @param bookmarks Array of bookmarks to operate on
-   * @param tags Tag or tags to remove (string or string array)
-   */
-  constructor(bookmarks: BookmarkKeyValuePair[], tags: string | string[]) {
-    super(bookmarks, tags)
-  }
-
-  /**
    * Execute remove tag operation
    * Only removes tags if the bookmark contains ALL specified tags
    * @returns Map of affected bookmark URLs and their original tags
@@ -185,7 +168,7 @@ export class RemoveTagCommand extends BaseTagCommand {
   execute(): Map<string, string[]> {
     const affected = new Map<string, string[]>()
 
-    this.bookmarks.forEach((bookmark) => {
+    for (const bookmark of this.bookmarks) {
       // Check if bookmark contains ALL specified tags
       const hasAllTags = this.sourceTags.every((tag) =>
         bookmark[1].tags.includes(tag)
@@ -200,7 +183,7 @@ export class RemoveTagCommand extends BaseTagCommand {
           (tag) => !this.sourceTags.includes(tag)
         )
       }
-    })
+    }
 
     return affected
   }
@@ -221,7 +204,7 @@ export class RemoveTagCommand extends BaseTagCommand {
  * Rename Tag Command - Renames multiple tags in selected bookmarks
  */
 export class RenameTagCommand extends BaseTagCommand {
-  private targetTags: string[]
+  private readonly targetTags: string[]
 
   /**
    * Create a rename tag command
@@ -250,11 +233,11 @@ export class RenameTagCommand extends BaseTagCommand {
 
     // Calculate tags to remove once outside the loop
     // This preserves the order of tags that are both in source and target
-    const tagsToRemove = this.sourceTags.filter(
-      (tag) => !this.targetTags.includes(tag)
+    const tagsToRemove = new Set(
+      this.sourceTags.filter((tag) => !this.targetTags.includes(tag))
     )
 
-    this.bookmarks.forEach((bookmark) => {
+    for (const bookmark of this.bookmarks) {
       // Check if bookmark contains ALL specified source tags
       const hasAllSourceTags = this.sourceTags.every((tag) =>
         bookmark[1].tags.includes(tag)
@@ -266,7 +249,7 @@ export class RenameTagCommand extends BaseTagCommand {
 
         // Keep tags that are not in the removal list
         const remainingTags = bookmark[1].tags.filter(
-          (tag) => !tagsToRemove.includes(tag)
+          (tag) => !tagsToRemove.has(tag)
         )
 
         // Combine remaining tags with all target tags and let normalizeAndDeduplicateStrings handle deduplication
@@ -275,7 +258,7 @@ export class RenameTagCommand extends BaseTagCommand {
           ...this.targetTags,
         ])
       }
-    })
+    }
 
     return affected
   }
@@ -303,9 +286,9 @@ export class RenameTagCommand extends BaseTagCommand {
  * Composite Tag Command - Combines multiple commands into a single command
  */
 export class CompositeTagCommand implements TagCommand {
-  private commands: TagCommand[]
-  private type: 'add' | 'remove' | 'rename'
-  private name: string
+  private readonly commands: TagCommand[]
+  private readonly type: 'add' | 'remove' | 'rename'
+  private readonly name: string
 
   /**
    * Create a composite tag command
@@ -316,7 +299,7 @@ export class CompositeTagCommand implements TagCommand {
   constructor(
     commands: TagCommand[],
     type: 'add' | 'remove' | 'rename',
-    name: string = '复合命令'
+    name = '复合命令'
   ) {
     this.commands = [...commands]
     this.type = type
@@ -409,10 +392,13 @@ export class CompositeTagCommand implements TagCommand {
  */
 export class CommandManager {
   private commandHistory: TagCommand[] = []
-  private currentIndex: number = -1
-  private affectedBookmarks: Map<string, string[]>[] = []
-  private persistCallback?: (bookmarks: BookmarkKeyValuePair[]) => Promise<void>
-  private maxHistorySize: number = 100 // 默认最大历史记录数
+  private currentIndex = -1
+  private affectedBookmarks: Array<Map<string, string[]>> = []
+  private readonly persistCallback?: (
+    bookmarks: BookmarkKeyValuePair[]
+  ) => Promise<void>
+
+  private maxHistorySize = 100 // 默认最大历史记录数
 
   /**
    * Create a command manager
@@ -421,7 +407,7 @@ export class CommandManager {
    */
   constructor(
     persistCallback?: (bookmarks: BookmarkKeyValuePair[]) => Promise<void>,
-    maxHistorySize: number = 100
+    maxHistorySize = 100
   ) {
     this.persistCallback = persistCallback
     this.maxHistorySize = maxHistorySize
@@ -457,47 +443,6 @@ export class CommandManager {
     // Execute multiple commands
     await this.executeCommandsInternal(commands, bookmarks)
     return true
-  }
-
-  /**
-   * Internal helper method to execute commands and update history
-   * @param commands Array of commands to execute
-   * @param bookmarks Array of bookmarks to operate on, for persistence
-   * @private
-   */
-  private async executeCommandsInternal(
-    commands: TagCommand[],
-    bookmarks?: BookmarkKeyValuePair[]
-  ): Promise<void> {
-    // If not at the last command, clear commands after current
-    if (this.currentIndex < this.commandHistory.length - 1) {
-      this.commandHistory = this.commandHistory.slice(0, this.currentIndex + 1)
-      this.affectedBookmarks = this.affectedBookmarks.slice(
-        0,
-        this.currentIndex + 1
-      )
-    }
-
-    // Execute all commands and save affected bookmarks
-    for (const command of commands) {
-      const affected = command.execute()
-      this.commandHistory.push(command)
-      this.affectedBookmarks.push(affected)
-      this.currentIndex++
-    }
-
-    // Limit history size
-    if (this.commandHistory.length > this.maxHistorySize) {
-      const excess = this.commandHistory.length - this.maxHistorySize
-      this.commandHistory = this.commandHistory.slice(excess)
-      this.affectedBookmarks = this.affectedBookmarks.slice(excess)
-      this.currentIndex -= excess
-    }
-
-    // If persistence callback and bookmarks array provided, save changes
-    if (this.persistCallback && bookmarks) {
-      await this.persistCallback(bookmarks)
-    }
   }
 
   /**
@@ -603,6 +548,47 @@ export class CommandManager {
       this.commandHistory = this.commandHistory.slice(excess)
       this.affectedBookmarks = this.affectedBookmarks.slice(excess)
       this.currentIndex -= excess
+    }
+  }
+
+  /**
+   * Internal helper method to execute commands and update history
+   * @param commands Array of commands to execute
+   * @param bookmarks Array of bookmarks to operate on, for persistence
+   * @private
+   */
+  private async executeCommandsInternal(
+    commands: TagCommand[],
+    bookmarks?: BookmarkKeyValuePair[]
+  ): Promise<void> {
+    // If not at the last command, clear commands after current
+    if (this.currentIndex < this.commandHistory.length - 1) {
+      this.commandHistory = this.commandHistory.slice(0, this.currentIndex + 1)
+      this.affectedBookmarks = this.affectedBookmarks.slice(
+        0,
+        this.currentIndex + 1
+      )
+    }
+
+    // Execute all commands and save affected bookmarks
+    for (const command of commands) {
+      const affected = command.execute()
+      this.commandHistory.push(command)
+      this.affectedBookmarks.push(affected)
+      this.currentIndex++
+    }
+
+    // Limit history size
+    if (this.commandHistory.length > this.maxHistorySize) {
+      const excess = this.commandHistory.length - this.maxHistorySize
+      this.commandHistory = this.commandHistory.slice(excess)
+      this.affectedBookmarks = this.affectedBookmarks.slice(excess)
+      this.currentIndex -= excess
+    }
+
+    // If persistence callback and bookmarks array provided, save changes
+    if (this.persistCallback && bookmarks) {
+      await this.persistCallback(bookmarks)
     }
   }
 }

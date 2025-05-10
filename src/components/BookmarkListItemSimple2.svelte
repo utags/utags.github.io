@@ -20,7 +20,7 @@
   }: BookmarkListItemProps = $props()
 </script>
 
-<div class="group relative bookmark-list-item w-full p-2 pr-5">
+<div class="group bookmark-list-item relative w-full p-2 pr-5">
   <div class="absolute top-2 right-0">
     <BookmarkHoverCardToggleButton
       buttonSize={16}

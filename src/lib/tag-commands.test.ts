@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest'
+import type { BookmarkKeyValuePair } from '../types/bookmarks.js'
 import {
   AddTagCommand,
   RemoveTagCommand,
   RenameTagCommand,
-} from './tag-commands'
-import type { BookmarkKeyValuePair } from '../types/bookmarks'
+} from './tag-commands.js'
 
 describe('AddTagCommand', () => {
   // Sample bookmarks for testing
@@ -127,7 +127,9 @@ describe('AddTagCommand', () => {
     expect(affected.size).toBe(0)
 
     // Undo command (should not throw errors)
-    expect(() => command.undo(affected)).not.toThrow()
+    expect(() => {
+      command.undo(affected)
+    }).not.toThrow()
   })
 
   it('should undo tag addition correctly', () => {
@@ -497,7 +499,9 @@ describe('RemoveTagCommand', () => {
     expect(affected.size).toBe(0)
 
     // Undo command (should not throw errors)
-    expect(() => command.undo(affected)).not.toThrow()
+    expect(() => {
+      command.undo(affected)
+    }).not.toThrow()
   })
 
   it('should handle removing a tag that does not exist in any bookmark', () => {
@@ -847,7 +851,9 @@ describe('RenameTagCommand', () => {
     expect(affected.size).toBe(0)
 
     // Undo command (should not throw errors)
-    expect(() => command.undo(affected)).not.toThrow()
+    expect(() => {
+      command.undo(affected)
+    }).not.toThrow()
   })
 
   it('should handle renaming a tag that does not exist in any bookmark', () => {

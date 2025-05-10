@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { BookmarkStorage } from './bookmark-storage'
-import type { BookmarksStore, BookmarkKeyValuePair } from '../types/bookmarks'
+import type {
+  BookmarksStore,
+  BookmarkKeyValuePair,
+} from '../types/bookmarks.js'
+import { BookmarkStorage } from './bookmark-storage.js'
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -12,7 +15,7 @@ const localStorageMock = (() => {
     setItem: vi.fn((key: string, value: string) => {
       store[key] = value
     }),
-    clear: () => {
+    clear() {
       store = {}
     },
   }
@@ -25,11 +28,12 @@ Object.defineProperty(globalThis, 'localStorage', {
 
 // Add dispatchEvent mock to prevent errors
 Object.defineProperty(globalThis, 'dispatchEvent', {
-  value: () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  value() {},
 })
 
 describe('BookmarkStorage instance', () => {
-  it('should use "utags-bookmarks" as default storage key', () => {
+  it('should use "utags-bookmarks" as default storage key', async () => {
     // Create a spy on localStorage.getItem
     const getItemSpy = vi.spyOn(localStorage, 'getItem')
 
@@ -37,7 +41,7 @@ describe('BookmarkStorage instance', () => {
     const defaultStorage = new BookmarkStorage()
 
     // Call a method that uses the storage key
-    defaultStorage.getBookmarksStore()
+    await defaultStorage.getBookmarksStore()
 
     // Verify localStorage.getItem was called with the default key
     expect(getItemSpy).toHaveBeenCalledWith('utags-bookmarks')
@@ -121,6 +125,7 @@ describe('BookmarkStorage', () => {
   // Valid bookmark store for testing
   const validBookmarksStore: BookmarksStore = {
     data: {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       'https://example.com': {
         tags: ['example', 'test'],
         meta: {
@@ -129,6 +134,7 @@ describe('BookmarkStorage', () => {
           updated: Date.now(),
         },
       },
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       'https://test.org': {
         tags: ['test', 'organization'],
         meta: {
@@ -167,7 +173,9 @@ describe('BookmarkStorage', () => {
       )
 
       // Verify the saved data is correct
-      const savedData = JSON.parse(localStorageMock.setItem.mock.calls[0][1])
+      const savedData = JSON.parse(
+        localStorageMock.setItem.mock.calls[0][1]
+      ) as BookmarksStore
       expect(savedData).toEqual(validBookmarksStore)
     })
 
@@ -200,6 +208,7 @@ describe('BookmarkStorage', () => {
 
     it('should throw error when saving invalid data', async () => {
       // Invalid bookmark store missing required fields
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const invalidStore = {
         data: {},
         // Missing meta field
@@ -207,12 +216,14 @@ describe('BookmarkStorage', () => {
 
       // Expect the save operation to throw an error
       await expect(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         bookmarkStorage.saveBookmarksStore(invalidStore)
       ).rejects.toThrow()
     })
 
     it('should throw error when databaseVersion is not a number', async () => {
       // Invalid bookmark store with non-numeric databaseVersion
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const invalidVersionStore = {
         data: {},
         meta: {
@@ -224,6 +235,7 @@ describe('BookmarkStorage', () => {
 
       // Expect the save operation to throw an error
       await expect(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         bookmarkStorage.saveBookmarksStore(invalidVersionStore)
       ).rejects.toThrow(
         'Invalid bookmark store format: databaseVersion must be a number'
@@ -284,7 +296,9 @@ describe('BookmarkStorage', () => {
         data: {},
         meta: {
           databaseVersion: 3, // Current version
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           created: expect.any(Number),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           updated: expect.any(Number),
         },
       })
@@ -413,6 +427,7 @@ describe('BookmarkStorage', () => {
       )
 
       // Create a spy on saveBookmarksStore method and mock throwing an exception
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
       const saveSpy = vi
         .spyOn(bookmarkStorage, 'saveBookmarksStore')
@@ -726,9 +741,10 @@ describe('BookmarkStorage', () => {
       await bookmarkStorage.saveBookmarksStore(validBookmarksStore)
 
       // Record timestamp before update
-      const beforeUpdate = validBookmarksStore.meta.updated as number
+      const beforeUpdate = validBookmarksStore.meta.updated!
 
       // Wait a short time to ensure timestamp will be different
+      // eslint-disable-next-line no-promise-executor-return
       await new Promise((resolve) => setTimeout(resolve, 10))
 
       // Prepare update data
@@ -865,7 +881,7 @@ describe('BookmarkStorage', () => {
         Object.keys(beforeUpdate.data)
       )
       expect(afterUpdate.meta.updated).toBeGreaterThan(
-        beforeUpdate.meta.updated as number
+        beforeUpdate.meta.updated!
       )
     })
   })
@@ -896,6 +912,7 @@ describe('BookmarkStorage', () => {
       expect(saveSpy).toHaveBeenCalledTimes(1)
       expect(saveSpy).toHaveBeenCalledWith(
         expect.objectContaining({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           data: expect.objectContaining({
             [bookmarkKey]: bookmarkData,
           }),
@@ -956,9 +973,10 @@ describe('BookmarkStorage', () => {
       await bookmarkStorage.saveBookmarksStore(validBookmarksStore)
 
       // Record timestamp before update
-      const beforeUpdate = validBookmarksStore.meta.updated as number
+      const beforeUpdate = validBookmarksStore.meta.updated!
 
       // Wait a short time to ensure timestamp will be different
+      // eslint-disable-next-line no-promise-executor-return
       await new Promise((resolve) => setTimeout(resolve, 10))
 
       // Prepare bookmark data
@@ -1076,7 +1094,9 @@ describe('BookmarkStorage', () => {
       expect(saveSpy).toHaveBeenCalledTimes(1)
       expect(saveSpy).toHaveBeenCalledWith(
         expect.objectContaining({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           data: expect.not.objectContaining({
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             [bookmarkKey]: expect.anything(),
           }),
         }),
@@ -1101,9 +1121,10 @@ describe('BookmarkStorage', () => {
       await bookmarkStorage.saveBookmarksStore(validBookmarksStore)
 
       // Record timestamp before deletion
-      const beforeDelete = validBookmarksStore.meta.updated as number
+      const beforeDelete = validBookmarksStore.meta.updated!
 
       // Wait a short time to ensure timestamp will be different
+      // eslint-disable-next-line no-promise-executor-return
       await new Promise((resolve) => setTimeout(resolve, 10))
 
       // Bookmark key to delete
@@ -1211,7 +1232,7 @@ describe('BookmarkStorage', () => {
       expect(typeof exportedJson).toBe('string')
 
       // Parse the exported JSON to verify its structure
-      const parsedData = JSON.parse(exportedJson)
+      const parsedData = JSON.parse(exportedJson) as BookmarksStore
 
       // Verify the parsed data matches the original data
       expect(parsedData.data).toEqual(validBookmarksStore.data)
@@ -1228,7 +1249,7 @@ describe('BookmarkStorage', () => {
       const exportedJson = await bookmarkStorage.exportBookmarks()
 
       // Parse the exported JSON
-      const parsedData = JSON.parse(exportedJson)
+      const parsedData = JSON.parse(exportedJson) as BookmarksStore
 
       // Verify an exported timestamp was added
       expect(parsedData.meta.exported).toBeDefined()
@@ -1276,13 +1297,11 @@ describe('BookmarkStorage', () => {
       const exportedJson = await bookmarkStorage.exportBookmarks()
 
       // Parse the exported JSON
-      const parsedData = JSON.parse(exportedJson)
+      const parsedData = JSON.parse(exportedJson) as BookmarksStore
 
       // Verify the structure of empty bookmarks store
       expect(Object.keys(parsedData.data)).toHaveLength(0)
-      expect(parsedData.meta.databaseVersion).toBe(
-        bookmarkStorage['currentVersion']
-      )
+      expect(parsedData.meta.databaseVersion).toBe(3) // Current version is 3
       expect(parsedData.meta.exported).toBeDefined()
     })
 
@@ -1312,6 +1331,7 @@ describe('BookmarkStorage', () => {
       // Prepare import data
       const importData = {
         data: {
+          // eslint-disable-next-line @typescript-eslint/naming-convention
           'https://example.com': {
             tags: ['example', 'test'],
             meta: {
@@ -1320,6 +1340,7 @@ describe('BookmarkStorage', () => {
               updated: Date.now(),
             },
           },
+          // eslint-disable-next-line @typescript-eslint/naming-convention
           'https://test.org': {
             tags: ['test', 'organization'],
             meta: {
@@ -1407,7 +1428,7 @@ describe('BookmarkStorage', () => {
       const invalidVersionData = {
         data: {},
         meta: {
-          databaseVersion: NaN, // NaN instead of number
+          databaseVersion: Number.NaN, // NaN instead of number
           created: Date.now(),
           updated: Date.now(),
         },

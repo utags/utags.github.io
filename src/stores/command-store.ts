@@ -1,6 +1,6 @@
-import type { BookmarkKeyValuePair } from '../types/bookmarks'
-import { CommandManager } from '../lib/tag-commands'
-import { bookmarkStorage } from '../lib/bookmark-storage'
+import type { BookmarkKeyValuePair } from '../types/bookmarks.js'
+import { CommandManager } from '../lib/tag-commands.js'
+import { bookmarkStorage } from '../lib/bookmark-storage.js'
 
 /**
  * Global CommandManager singleton instance

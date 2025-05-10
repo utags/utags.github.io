@@ -11,7 +11,7 @@ import {
   type BookmarksData,
   type BookmarkTagsAndMetadata,
 } from '../types/bookmarks.js'
-import { bookmarkStorage } from '../lib/bookmark-storage'
+import { bookmarkStorage } from '../lib/bookmark-storage.js'
 import { sortBookmarks } from '../utils/sort-bookmarks.js'
 import { getHostName } from '../utils/index.js'
 import { convertDate, isValidDate } from '../utils/date.js'

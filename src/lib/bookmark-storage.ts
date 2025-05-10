@@ -4,8 +4,8 @@ import type {
   BookmarkKeyValuePair,
   BookmarkTagsAndMetadata,
   BookmarkKey,
-} from '../types/bookmarks'
-import { isNonNullObject } from '../utils'
+} from '../types/bookmarks.js'
+import { isNonNullObject } from '../utils/index.js'
 
 /**
  * Bookmark Storage Service
@@ -18,12 +18,13 @@ export class BookmarkStorage {
    * Storage key used for localStorage
    * @private
    */
-  private storageKey: string
+  private readonly storageKey: string
 
   /**
    * Current database version
    * @private
    */
+  // eslint-disable-next-line @typescript-eslint/class-literal-property-style
   private readonly currentVersion: number = 3
 
   /**
@@ -32,73 +33,6 @@ export class BookmarkStorage {
    */
   constructor(storageKey: string = STORAGE_KEY_BOOKMARKS) {
     this.storageKey = storageKey
-  }
-
-  /**
-   * Creates an empty initialized bookmark store
-   *
-   * @returns A new empty BookmarksStore with current version and timestamps
-   * @private
-   */
-  private createEmptyBookmarksStore(): BookmarksStore {
-    return {
-      data: {},
-      meta: {
-        databaseVersion: this.currentVersion,
-        created: Date.now(),
-        updated: Date.now(),
-      },
-    }
-  }
-
-  /**
-   * Validates bookmark store data structure and version compatibility
-   *
-   * @param data - The data to validate
-   * @param saveAfterMigration - Whether to save after migration, defaults to true
-   * @returns The validated data as BookmarksStore if valid
-   * @throws Error if the data structure is invalid or version is incompatible
-   * @private
-   */
-  private validateBookmarksStore(
-    data: any,
-    saveAfterMigration: boolean = true
-  ): BookmarksStore {
-    // Validate the parsed data structure
-    if (!isNonNullObject(data.data) || !isNonNullObject(data.meta)) {
-      throw new Error(
-        'Invalid bookmark store format: data and meta must be non-null objects'
-      )
-    }
-
-    // Validate database version
-    const { databaseVersion } = data.meta
-
-    // Check if databaseVersion is a number
-    if (typeof databaseVersion !== 'number' || isNaN(databaseVersion)) {
-      throw new Error(
-        'Invalid bookmark store format: databaseVersion must be a number'
-      )
-    }
-
-    // Check if version is compatible
-    if (databaseVersion > this.currentVersion) {
-      throw new Error(
-        `Incompatible database version: ${databaseVersion} is newer than the supported version ${this.currentVersion}`
-      )
-    }
-
-    // Handle migration for older versions
-    if (databaseVersion < this.currentVersion) {
-      // Perform migration
-      return this.migrateBookmarksStore(
-        data,
-        databaseVersion,
-        saveAfterMigration
-      )
-    }
-
-    return data as BookmarksStore
   }
 
   /**
@@ -111,7 +45,7 @@ export class BookmarkStorage {
    */
   async saveBookmarksStore(
     bookmarksStore: BookmarksStore,
-    skipValidation: boolean = false
+    skipValidation = false
   ): Promise<void> {
     try {
       // Validate the bookmarks store before saving if not skipped
@@ -141,14 +75,14 @@ export class BookmarkStorage {
     try {
       const bookmarksJson = localStorage.getItem(this.storageKey)
       if (bookmarksJson) {
-        const parsedData = JSON.parse(bookmarksJson)
+        const parsedData = JSON.parse(bookmarksJson) as BookmarksStore
 
         // Validate the parsed data
         return this.validateBookmarksStore(parsedData)
-      } else {
-        // Return empty initialized data
-        return this.createEmptyBookmarksStore()
       }
+
+      // Return empty initialized data
+      return this.createEmptyBookmarksStore()
     } catch (error) {
       console.error('Failed to retrieve bookmarks:', error)
       throw error
@@ -208,9 +142,9 @@ export class BookmarkStorage {
       const bookmarksStore = await this.getBookmarksStore()
 
       // Update bookmark data
-      bookmarks.forEach(([key, entry]) => {
+      for (const [key, entry] of bookmarks) {
         bookmarksStore.data[key] = entry
-      })
+      }
 
       // Update the last modified timestamp
       bookmarksStore.meta.updated = Date.now()
@@ -262,6 +196,7 @@ export class BookmarkStorage {
       const bookmarksStore = await this.getBookmarksStore()
 
       if (bookmarksStore.data[key]) {
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
         delete bookmarksStore.data[key]
         bookmarksStore.meta.updated = Date.now()
         await this.saveBookmarksStore(bookmarksStore, true)
@@ -302,7 +237,7 @@ export class BookmarkStorage {
   async importBookmarks(jsonData: string): Promise<void> {
     try {
       // Parse the imported data
-      const importedData = JSON.parse(jsonData)
+      const importedData = JSON.parse(jsonData) as BookmarksStore
 
       // Validate the imported data and handle migration if needed
       const validatedData = this.validateBookmarksStore(importedData, false)
@@ -333,6 +268,74 @@ export class BookmarkStorage {
   }
 
   /**
+   * Creates an empty initialized bookmark store
+   *
+   * @returns A new empty BookmarksStore with current version and timestamps
+   * @private
+   */
+  private createEmptyBookmarksStore(): BookmarksStore {
+    return {
+      data: {},
+      meta: {
+        databaseVersion: this.currentVersion,
+        created: Date.now(),
+        updated: Date.now(),
+      },
+    }
+  }
+
+  /**
+   * Validates bookmark store data structure and version compatibility
+   *
+   * @param data - The data to validate
+   * @param saveAfterMigration - Whether to save after migration, defaults to true
+   * @returns The validated data as BookmarksStore if valid
+   * @throws Error if the data structure is invalid or version is incompatible
+   * @private
+   */
+  private validateBookmarksStore(
+    data: any,
+    saveAfterMigration = true
+  ): BookmarksStore {
+    // Validate the parsed data structure
+    if (!isNonNullObject(data.data) || !isNonNullObject(data.meta)) {
+      throw new Error(
+        'Invalid bookmark store format: data and meta must be non-null objects'
+      )
+    }
+
+    // Validate database version
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const { databaseVersion } = data.meta
+
+    // Check if databaseVersion is a number
+    if (typeof databaseVersion !== 'number' || Number.isNaN(databaseVersion)) {
+      throw new TypeError(
+        'Invalid bookmark store format: databaseVersion must be a number'
+      )
+    }
+
+    // Check if version is compatible
+    if (databaseVersion > this.currentVersion) {
+      throw new Error(
+        `Incompatible database version: ${databaseVersion} is newer than the supported version ${this.currentVersion}`
+      )
+    }
+
+    // Handle migration for older versions
+    if (databaseVersion < this.currentVersion) {
+      // Perform migration
+      return this.migrateBookmarksStore(
+        data,
+        databaseVersion,
+        saveAfterMigration
+      )
+    }
+
+    return data as BookmarksStore
+  }
+
+  /**
    * Migrates bookmark store data from older versions to the current version
    *
    * @param oldStore - The old bookmark store data
@@ -344,7 +347,7 @@ export class BookmarkStorage {
   private migrateBookmarksStore(
     oldStore: any,
     oldVersion: number,
-    saveAfterMigration: boolean = true
+    saveAfterMigration = true
   ): BookmarksStore {
     console.log(
       `Migrating bookmarks from version ${oldVersion} to version ${this.currentVersion}`
@@ -352,9 +355,9 @@ export class BookmarkStorage {
 
     // Create a copy of the old store
     const newStore: BookmarksStore = {
-      data: { ...oldStore.data },
+      data: { ...(oldStore.data as BookmarksStore['data']) },
       meta: {
-        ...oldStore.meta,
+        ...(oldStore.meta as BookmarksStore['meta']),
         databaseVersion: this.currentVersion,
         updated: Date.now(),
       },
@@ -380,6 +383,7 @@ export class BookmarkStorage {
     // Save the migrated store if required
     if (saveAfterMigration) {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.saveBookmarksStore(newStore, true) // Skip validation as we just validated
       } catch (error) {
         console.error('Failed to save migrated bookmarks:', error)

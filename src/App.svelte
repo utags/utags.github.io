@@ -29,6 +29,7 @@
   import BookmarkList from './components/BookmarkList.svelte'
   import CompositeFilters from './components/CompositeFilters.svelte'
   import BatchTagAddModal from './components/BatchTagAddModal.svelte'
+  import BatchTagRemoveModal from './components/BatchTagRemoveModal.svelte'
 
   import Toolbar from './components/Toolbar.svelte'
   import { settings, bookmarks, exportData } from './stores/stores.js'
@@ -354,10 +355,9 @@
 
   // Selection mode state
   let selectionMode = $state(false)
-  let selectedBookmarkUrls = $state([])
-  // State for batch tag add modal
+  let selectedBookmarkUrls = $state<string[]>([])
   let showBatchTagAddModal = $state(false)
-  let selectedBookmarksForTagAdd = $state<string[]>([])
+  let showBatchTagRemoveModal = $state(false)
 
   /**
    * Handle selection mode change from toolbar
@@ -393,10 +393,18 @@
    * @param event - Custom event containing selected bookmark URLs
    */
   function handleBatchAddTag(event: CustomEvent) {
-    selectedBookmarksForTagAdd = event.detail.selectedBookmarkUrls
+    selectedBookmarkUrls = event.detail.selectedBookmarkUrls
     showBatchTagAddModal = true
   }
 
+  /**
+   * Handle batch tag remove event from BookmarkList
+   * @param event - Custom event containing selected bookmark URLs
+   */
+  function handleBatchRemoveTag(event: CustomEvent) {
+    selectedBookmarkUrls = event.detail.selectedBookmarkUrls
+    showBatchTagRemoveModal = true
+  }
 </script>
 
 <main
@@ -425,7 +433,7 @@
       </div>
       <div class="aside-area">
         <CompositeFilters
-          level="1"
+          level={1}
           paused={importProgress.total > 0}
           active={activeFilterLevel === 1}
           filterString={filterStringLevel1}
@@ -436,7 +444,7 @@
 
         {#if showLevel2 && importProgress.total === 0}
           <CompositeFilters
-            level="2"
+            level={2}
             disabled={!useLevel2}
             paused={importProgress.total > 0}
             active={activeFilterLevel === 2}
@@ -448,7 +456,7 @@
 
           {#if showLevel3}
             <CompositeFilters
-              level="3"
+              level={3}
               disabled={!useLevel3}
               paused={importProgress.total > 0}
               active={activeFilterLevel === 3}
@@ -469,13 +477,17 @@
         {selectionMode}
         on:selectionChange={handleSelectionChange}
         on:batchAddTag={handleBatchAddTag}
+        on:batchRemoveTag={handleBatchRemoveTag}
         on:batchTagEdit={handleBatchTagEdit} />
       <AddBookmark
         bind:show={showAddBookmarkModal}
         initialData={editBookmarkData} />
       <BatchTagAddModal
-        selectedBookmarkUrls={selectedBookmarksForTagAdd}
+        {selectedBookmarkUrls}
         bind:isOpen={showBatchTagAddModal} />
+      <BatchTagRemoveModal
+        {selectedBookmarkUrls}
+        bind:isOpen={showBatchTagRemoveModal} />
     </div>
   </div>
 </main>

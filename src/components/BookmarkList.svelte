@@ -178,6 +178,16 @@
     dispatch('batchAddTag', { selectedBookmarkUrls })
   }
 
+  /**
+   * Start batch tag removing for selected bookmarks
+   * Dispatches an event to parent component to open tag remove modal
+   */
+  function startBatchRemoveTag() {
+    if (selectedBookmarkUrls.length === 0) return
+
+    dispatch('batchRemoveTag', { selectedBookmarkUrls })
+  }
+
   // Reset selection when filtered bookmarks change
   $effect(() => {
     console.log('reset selection when filtered bookmarks change')
@@ -226,6 +236,12 @@
           disabled={selectedCount === 0}
           onclick={startBatchAddTag}>
           添加标签
+        </button>
+        <button
+          class="rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-600"
+          disabled={selectedCount === 0}
+          onclick={startBatchRemoveTag}>
+          删除标签
         </button>
         <button
           class="rounded-md bg-indigo-600 px-3 py-1 text-sm text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-indigo-700 dark:hover:bg-indigo-600"

@@ -34,9 +34,18 @@ async function initializeBookmarks() {
   if (get(settings).isFirstRun) {
     // Initial bookmarks
     await bookmarkStorage.updateBookmarks(Object.entries(initialBookmarksCN))
+    // Release notes
+    await bookmarkStorage.updateBookmarks(Object.entries(releaseNotesCN))
   }
-  // Release notes
-  await bookmarkStorage.updateBookmarks(Object.entries(releaseNotesCN))
+
+  // Add latest release notes
+  const releases = Object.entries(releaseNotesCN)
+  const latestReleaseBookmark = await bookmarkStorage.getBookmarksAsArrayByKeys(
+    [releases[0][0]]
+  )
+  if (latestReleaseBookmark.length === 0) {
+    await bookmarkStorage.updateBookmarks([releases[0]])
+  }
 }
 
 function initializeCollections() {

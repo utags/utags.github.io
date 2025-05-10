@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy } from 'svelte'
+  import { splitTags } from 'utags-utils'
   // Props
   let {
     id = '',
@@ -64,8 +65,9 @@
       return
     }
 
+    // When using Chinese input methods, commas may still be included in certain edge cases, so we need to split the tags again
     // Add tag directly to the bindable array
-    tags = [...tags, trimmedTag]
+    tags = splitTags(tags.join(',') + ',' + trimmedTag)
 
     // Clear input
     inputValue = ''
@@ -114,10 +116,7 @@
     const pastedText = event.clipboardData?.getData('text') || ''
 
     // Split by commas, newlines, or spaces
-    const pastedTags = pastedText
-      .split(/[,，\r\n]+/)
-      .map((tag) => tag.trim())
-      .filter((tag) => tag !== '')
+    const pastedTags = splitTags(pastedText)
 
     // Add each tag
     if (pastedTags.length > 1) {
@@ -182,7 +181,8 @@
     // Update the tag
     const newTags = [...tags]
     newTags[index] = trimmedValue
-    tags = newTags
+    // When editing tags, commas might be entered, requiring re-splitting of the tag string
+    tags = splitTags(newTags.join(','))
     editingTagIndex = -1
   }
 

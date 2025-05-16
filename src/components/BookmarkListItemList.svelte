@@ -1,6 +1,6 @@
 <script>
   import { Pencil, Trash2, BookOpen } from 'lucide-svelte'
-  import { humanizeUrl } from '../utils'
+  import { humanizeUrl } from '../utils/url-utils.js'
   import Favicon from './Favicon.svelte'
   import {
     handleBookmarkEdit,

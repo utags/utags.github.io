@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getContext } from 'svelte'
   import { hasClass } from 'browser-extension-utils'
   import { settings } from '../stores/stores'
   import { appConfig } from '../config/app-config'
@@ -32,6 +33,10 @@
   let sortByOpen = $state(false)
   let addMenuOpen = $state(false)
   let themeOpen = $state(false)
+  // Indicate if viewing deleted bookmarks
+  let isViewingDeleted = $derived(
+    getContext('sharedStatus').isViewingDeleted as boolean
+  )
 </script>
 
 <div
@@ -90,12 +95,18 @@
 
         <DropdownMenu
           bind:open={addMenuOpen}
-          items={[
-            { value: 'addBookmark', label: '添加书签' },
-            // TODO: { value: 'editJustAddedBookmark', label: '编辑最近书签' },
-            { value: 'saveFilter', label: '收藏当前筛选器' },
-            { value: 'saveCollection', label: '创建收藏集' },
-          ]}
+          items={isViewingDeleted
+            ? [
+                { value: 'addBookmark', label: '添加书签' },
+                // TODO: { value: 'editJustAddedBookmark', label: '编辑最近书签' },
+                { value: 'saveFilter', label: '收藏当前筛选器' },
+              ]
+            : [
+                { value: 'addBookmark', label: '添加书签' },
+                // TODO: { value: 'editJustAddedBookmark', label: '编辑最近书签' },
+                { value: 'saveFilter', label: '收藏当前筛选器' },
+                { value: 'saveCollection', label: '创建收藏集' },
+              ]}
           selectedValue=""
           onSelect={(value) => {
             if (value === 'addBookmark') {

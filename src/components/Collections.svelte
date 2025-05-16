@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
+  import { getContext, onMount } from 'svelte'
   import {
     Bookmark,
     Tag,
@@ -28,6 +28,10 @@
   let pathname = $state('')
   let currentCollectionId = $state(undefined)
   let activeMenuId: string | null = $state(null)
+  // Indicate if viewing deleted bookmarks
+  let isViewingDeleted = $derived(
+    getContext('sharedStatus').isViewingDeleted as boolean
+  )
 
   onMount(() => {
     window.addEventListener('clickShowSaveCollectionModal', showAddModal)
@@ -96,28 +100,30 @@
     role="button"
     tabindex="0">
     <span class="flex-1 text-left font-semibold">Collections</span>
-    <div class="group-title-button relative flex-none">
-      <button
-        class="absolute top-1/2 right-0 flex -translate-y-1/2 items-center justify-center rounded-lg p-1.5 text-indigo-600
+    {#if !isViewingDeleted}
+      <div class="group-title-button relative flex-none">
+        <button
+          class="absolute top-1/2 right-0 flex -translate-y-1/2 items-center justify-center rounded-lg p-1.5 text-indigo-600
                  transition-colors hover:bg-indigo-100 dark:text-indigo-400 dark:hover:bg-gray-700"
-        aria-label="新建收藏集"
-        onclick={(e) => {
-          e.stopPropagation()
-          showAddModal()
-        }}>
-        <svg
-          class="h-4 w-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 4v16m8-8H4" />
-        </svg>
-      </button>
-    </div>
+          aria-label="新建收藏集"
+          onclick={(e) => {
+            e.stopPropagation()
+            showAddModal()
+          }}>
+          <svg
+            class="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
+      </div>
+    {/if}
     <div class="group-title-button {subMenuExpand ? '' : 'opacity-100'}">
       <ExpandIcon expanded={subMenuExpand} />
     </div>
@@ -129,7 +135,7 @@
         <li class="group pr-2">
           <div class="ml-3 flex items-center justify-between">
             <a
-              href={`/?${collection.filterString}`}
+              href={`/c/${collection.pathname}`}
               class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
               <span class="h-4 w-4">
                 <Folder size={16} />

@@ -220,7 +220,7 @@
       $bookmarks.data[url] = newEntry
 
       const orgUrl = initialData?.href
-      if (orgUrl) {
+      if (orgUrl && orgUrl !== url) {
         delete $bookmarks.data[orgUrl]
       }
     }

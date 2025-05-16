@@ -64,7 +64,12 @@ export type BookmarkTagsAndMetadata = {
      * The timestamp of the deletion of the bookmark.
      */
     deleted: number
-    actionType: 'delete' | 'import' | 'sync'
+    actionType:
+      | 'delete'
+      | 'import'
+      | 'sync'
+      | 'batch-delete-bookmarks'
+      | 'batch-delete-tags'
   }
   importedMeta?: {
     /**

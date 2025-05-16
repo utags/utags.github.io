@@ -1,9 +1,6 @@
 import Console from 'console-tagger'
-import {
-  getHostName,
-  normalizeAndDeduplicateStrings,
-  deduplicateArrays,
-} from '../index.js'
+import { normalizeAndDeduplicateStrings, deduplicateArrays } from '../index.js'
+import { getHostName } from '../url-utils.js'
 import type { FilterCondition } from '../filter-registry.js'
 import type { BookmarkMetadata } from '../../types/bookmarks.js'
 import {
@@ -14,7 +11,7 @@ import {
 } from '../regex-utils.js'
 
 const console = new Console({
-  prefix: 'utils',
+  prefix: 'query-filter',
   color: { line: 'white', background: 'orange' },
 })
 

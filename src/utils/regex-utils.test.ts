@@ -247,7 +247,7 @@ describe('regex-utils', () => {
       console.error = vitest.fn()
 
       // Save original RegExp constructor
-      // eslint-disable-next-line @typescript-eslint/naming-convention
+
       const OriginalRegExp = globalThis.RegExp
 
       // Mock RegExp constructor to throw error on second call

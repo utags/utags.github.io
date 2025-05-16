@@ -1,6 +1,6 @@
 {
   "name": "utags-app",
-  "version": "0.4.25051001",
+  "version": "0.5.1-25051701",
   "author": "Pipecraft",
   "namespace": "https://utags.pipecraft.net/",
   "license": "MIT",
@@ -62,6 +62,7 @@
     ],
     "rules": {
       "@typescript-eslint/prefer-nullish-coalescing": 0,
+      "@typescript-eslint/prefer-optional-chain": 0,
       "unicorn/prevent-abbreviations": 0,
       "capitalized-comments": 0
     },
@@ -73,6 +74,14 @@
         "rules": {
           "@typescript-eslint/naming-convention": 0,
           "unicorn/filename-case": 0
+        }
+      },
+      {
+        "files": [
+          "src/**/*.test.ts"
+        ],
+        "rules": {
+          "@typescript-eslint/naming-convention": 0
         }
       },
       {
@@ -100,7 +109,8 @@
       "src/sync/*",
       "src/sync2/*",
       "src/utils/sync*",
-      "src/services/sync*"
+      "src/services/sync*",
+      "src/stores/stores2.js"
     ]
   }
 }

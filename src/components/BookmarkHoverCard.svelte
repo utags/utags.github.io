@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getContext } from 'svelte'
   import { Pencil, Trash2, BookOpen } from 'lucide-svelte'
   import Favicon from './Favicon.svelte'
   import {
@@ -40,6 +41,11 @@
   // State
   let cardPosition = $state<'top' | 'bottom' | 'button-top' | 'button-bottom'>(
     'bottom'
+  )
+
+  // Indicate if viewing deleted bookmarks
+  let isViewingDeleted = $derived(
+    getContext('sharedStatus').isViewingDeleted as boolean
   )
 
   /**
@@ -147,18 +153,20 @@
         </h3>
       </div>
       <div class="flex gap-1">
-        <button
-          onclick={() => handleBookmarkEdit(href)}
-          class="rounded p-1 text-gray-600 hover:bg-blue-50 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-blue-900/30 dark:hover:text-blue-400"
-          title="编辑">
-          <Pencil size={14} />
-        </button>
-        <button
-          onclick={() => handleBookmarkDelete(href)}
-          class="rounded p-1 text-gray-600 hover:bg-red-50 hover:text-red-600 dark:text-gray-300 dark:hover:bg-red-900/30 dark:hover:text-red-400"
-          title="删除">
-          <Trash2 size={14} />
-        </button>
+        {#if !isViewingDeleted}
+          <button
+            onclick={() => handleBookmarkEdit(href)}
+            class="rounded p-1 text-gray-600 hover:bg-blue-50 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-blue-900/30 dark:hover:text-blue-400"
+            title="编辑">
+            <Pencil size={14} />
+          </button>
+          <button
+            onclick={() => handleBookmarkDelete(href)}
+            class="rounded p-1 text-gray-600 hover:bg-red-50 hover:text-red-600 dark:text-gray-300 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+            title="删除">
+            <Trash2 size={14} />
+          </button>
+        {/if}
         <button
           onclick={() => handleAISummary(href)}
           class="rounded p-1 text-gray-600 hover:bg-purple-50 hover:text-purple-600 dark:text-gray-300 dark:hover:bg-purple-900/30 dark:hover:text-purple-400"

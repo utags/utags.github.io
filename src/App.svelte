@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import { fade } from 'svelte/transition'
+  import { onMount, setContext } from 'svelte'
   import {
     $ as _$,
     addClass,
@@ -10,7 +9,12 @@
     removeEventListener,
   } from 'browser-extension-utils'
   import Console from 'console-tagger'
-  import { cleanFilterString, getHostName } from './utils/index.js'
+  import {
+    cleanFilterString,
+    getHostName,
+    transformCollectionPathToQueryParams,
+    convertCollectionToFilterParams,
+  } from './utils/url-utils.js'
   import { sortBookmarks } from './utils/sort-bookmarks.js'
   import { filterBookmarksByUrlParams } from './utils/filter-bookmarks.js'
   import type {
@@ -22,6 +26,7 @@
     getDomainCounts,
     getHierachyTags,
   } from './utils/bookmarks.js'
+  import { batchDeleteBookmarks } from './utils/bookmark-actions.js'
   import { HASH_DELIMITER } from './config/constants.js'
   import Header from './components/Header.svelte'
   import NavigationSidebar from './components/NavigationSidebar.svelte'
@@ -35,6 +40,7 @@
   import Toolbar from './components/Toolbar.svelte'
   import { settings, bookmarks, exportData } from './stores/stores.js'
   import initializeStores from './stores/initialize-stores.js'
+  import { BookmarkService } from './services/bookmark-service.js'
 
   const console = new Console({
     prefix: 'app',
@@ -43,16 +49,23 @@
 
   initializeStores()
 
+  const bookmarkService = BookmarkService.getInstance()
+  let store = $state(bookmarkService.getStore())
+  let baseFilterSearchParams = $state('')
+  let bookmarksArray = $derived(
+    $store.data ? Object.entries($store.data) : $store
+  ) as BookmarkKeyValuePair[]
+
   let originalBookmarks: BookmarkKeyValuePair[] = $derived(
-    filterBookmarksByUrlParams(Object.entries($bookmarks.data), location.search)
+    filterBookmarksByUrlParams(bookmarksArray, baseFilterSearchParams)
   )
   let tagHierarchyItems: TagHierarchyItem[] = $derived(
     getHierachyTags(originalBookmarks)
   )
   const bookmarksInitializedHandler = () => {
-    console.log('bookmarks initialized')
+    // console.log('bookmarks initialized')
     // 触发状态更新
-    $bookmarks = $bookmarks
+    // $bookmarks = $bookmarks
     // originalBookmarks = filterBookmarksByUrlParams(
     //   Object.entries($bookmarks.data),
     //   location.search
@@ -76,6 +89,11 @@
   let filterStringLevel2 = $state('')
   let filterStringLevel3 = $state('')
   let editBookmarkData = $state(null)
+  let sharedStatus = $state({
+    isViewingDeleted: false,
+  })
+
+  setContext('sharedStatus', sharedStatus)
 
   function locationChangeHandler() {
     console.log(
@@ -83,6 +101,40 @@
       globalThis.lastHash !== location.hash,
       location.href
     )
+
+    const newUrl = transformCollectionPathToQueryParams(location.href)
+    if (newUrl !== location.href) {
+      console.log('location change, updating url')
+      history.replaceState({}, '', newUrl)
+      return
+    }
+
+    const urlParams = new URLSearchParams(location.search)
+    const collectionId = urlParams.get('collection') || ''
+    const visibility = urlParams.get('v') || undefined // 'shared', 'public', 'private'
+    if (
+      collectionId !== bookmarkService.getCollectionId() ||
+      visibility !== bookmarkService.getVisibility()
+    ) {
+      console.log('collection changed, updating bookmarks')
+      bookmarkService.initializeStore(collectionId, visibility)
+      store = bookmarkService.getStore()
+      sharedStatus.isViewingDeleted = collectionId === 'deleted'
+    }
+
+    if (location.search) {
+      const urlParams = convertCollectionToFilterParams(
+        new URLSearchParams(location.search)
+      )
+
+      console.log('urlParams', urlParams.toString())
+      baseFilterSearchParams = urlParams.toString()
+    } else {
+      baseFilterSearchParams = ''
+    }
+
+    console.log('location.href', location.href)
+
     if (globalThis.lastHash !== location.hash) {
       console.log(
         'last hash:',
@@ -152,6 +204,8 @@
     addEventListener(globalThis, 'bookmarksExport', bookmarksExportHandler)
     addEventListener(globalThis, 'editBookmark', editBookmarkHandler)
 
+    bookmarkService.onUpdate(bookmarksUpdateHandler)
+
     // 初始化时触发一次
     locationChangeHandler()
     updateFilterComponentsCount()
@@ -180,6 +234,8 @@
       removeEventListener(globalThis, 'bookmarksExport', bookmarksExportHandler)
       removeEventListener(globalThis, 'editBookmark', editBookmarkHandler)
 
+      bookmarkService.offUpdate(bookmarksUpdateHandler)
+
       // 清除定时器
       if (timeoutId) {
         clearTimeout(timeoutId)
@@ -190,6 +246,11 @@
       globalThis.lastHash = null
     }
   })
+
+  function bookmarksUpdateHandler(event) {
+    console.log('书签数据已更新:', event.detail)
+    // 更新UI或执行其他操作
+  }
 
   function updateFilteredBookmarks() {
     console.log('!!! updateFilteredBookmarks')
@@ -421,15 +482,19 @@
    * Delete selected bookmarks after confirmation
    */
   function confirmBatchDeleteBookmarks() {
-    if (selectedBookmarkUrls.length === 0) return
-
-    // Delete each selected bookmark
-    selectedBookmarkUrls.forEach((url) => {
-      delete $bookmarks.data[url]
+    batchDeleteBookmarks(selectedBookmarkUrls, {
+      skipConfirmation: true,
+      actionType: 'batch-delete-bookmarks',
+      onSuccess: (undoFn, deletedCount) => {
+        if (deletedCount > 0) {
+          // TODO:  showUndoNotification(`Deleted ${deletedCount} bookmarks`, undoFn);
+          alert(`Deleted ${deletedCount} bookmarks`)
+        } else {
+          // TODO: showNotification('No bookmarks were deleted');
+          alert('No bookmarks were deleted')
+        }
+      },
     })
-
-    // Update bookmarks store
-    bookmarks.set($bookmarks)
 
     // Close modal and reset selection
     showBatchDeleteConfirmModal = false

@@ -8,9 +8,8 @@
   import {
     parseFilterString,
     convertToFilterString,
-    getHostName,
     parseHashFiltersToSearchParams,
-  } from '../utils/index.js'
+  } from '../utils/url-utils.js'
   import { getTagCounts, getDomainCounts } from '../utils/bookmarks.js'
   import { filterBookmarksByUrlParams } from '../utils/filter-bookmarks.js'
   import FilterCheckbox from './FilterCheckbox.svelte'

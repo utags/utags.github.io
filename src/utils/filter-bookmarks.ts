@@ -1,3 +1,4 @@
+import Console from 'console-tagger'
 import type { BookmarkKeyValuePair } from '../types/bookmarks.js'
 import { defaultFilterRegistry } from './filter-registry.js'
 import { createTimeCondition } from './filters/time-filter.js'
@@ -6,6 +7,11 @@ import { createReadLaterCondition } from './filters/read-later-filter.js'
 import { createTagFilterCondition } from './filters/tag-filter.js'
 import { createDomainFilterCondition } from './filters/domain-filter.js'
 import { createQueryFilterCondition } from './filters/query-filter.js'
+
+const console = new Console({
+  prefix: 'filter-bookmarks',
+  color: { line: 'black', background: 'yellow' },
+})
 
 defaultFilterRegistry
   .register('time', createTimeCondition)
@@ -19,6 +25,10 @@ export function filterBookmarksByUrlParams(
   entries: BookmarkKeyValuePair[],
   searchParams: string | URLSearchParams
 ) {
+  console.log(
+    'filterBookmarksByUrlParams',
+    decodeURIComponent(searchParams.toString())
+  )
   return defaultFilterRegistry.apply(entries, searchParams)
 }
 

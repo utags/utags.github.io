@@ -13,7 +13,7 @@ import {
 } from '../types/bookmarks.js'
 import { bookmarkStorage } from '../lib/bookmark-storage.js'
 import { sortBookmarks } from '../utils/sort-bookmarks.js'
-import { getHostName } from '../utils/index.js'
+import { getHostName } from '../utils/url-utils.js'
 import { convertDate, isValidDate } from '../utils/date.js'
 import {
   type MergeTitleStrategy,
@@ -36,6 +36,7 @@ export const settings = persisted(STORAGE_KEY_SETTINGS, {
   isFirstRun: true,
   lang: 'en',
   alwaysShowAdvancedFields: false,
+  maxDeletedBookmarks: 10_000,
   headerToolbarSettings: {
     theme: false,
     sortBy: true,
@@ -278,7 +279,7 @@ export async function importDataOld() {
     try {
       const content = await file.text()
       const data: BookmarksStore = JSON.parse(content) as BookmarksStore
-      importData(data)
+      await importData(data, {})
     } catch {
       // eslint-disable-next-line no-alert
       alert('文件导入失败，请检查文件格式')
@@ -307,4 +308,6 @@ function mergeBookmarks(
   existingBookmark: BookmarkTagsAndMetadata,
   newBookmark: BookmarkTagsAndMetadata,
   mergeStrategy: MergeStrategy
-) {}
+) {
+  console.log('mergeBookmarks', existingBookmark, newBookmark)
+}

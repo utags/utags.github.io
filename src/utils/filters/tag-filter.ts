@@ -4,7 +4,7 @@ import { normalizeAndDeduplicateStrings, deduplicateArrays } from '../index.js'
 import type { FilterCondition } from '../filter-registry.js'
 
 const console = new Console({
-  prefix: 'utils',
+  prefix: 'tag-filter',
   color: { line: 'white', background: 'orange' },
 })
 
@@ -37,11 +37,11 @@ export function createTagFilterCondition(
         .filter((group) => group.length > 0),
       true
     )
-    console.log(tagGroups)
+    console.log('createTagFilterCondition', tagGroups)
     return tagGroups.length > 0 ? createMixedCondition(tagGroups) : undefined
   }
 
   const requiredTags = normalizeAndDeduplicateStrings(tagValues)
-  console.log(requiredTags)
+  console.log('createTagFilterCondition', requiredTags)
   return requiredTags.length > 0 ? createAndCondition(requiredTags) : undefined
 }

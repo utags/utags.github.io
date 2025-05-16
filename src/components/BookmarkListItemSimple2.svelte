@@ -1,6 +1,6 @@
 <script lang="ts">
   import { type BookmarkListItemProps } from '../types/bookmarks'
-  import { getHostName } from '../utils'
+  import { getHostName } from '../utils/url-utils.js'
   import Favicon from './Favicon.svelte'
   import {
     handleBookmarkEdit,

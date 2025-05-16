@@ -2,7 +2,7 @@ import type {
   BookmarkKeyValuePair,
   TagHierarchyItem,
 } from '../types/bookmarks.js'
-import { getHostName } from './index.js'
+import { getHostName } from './url-utils.js'
 
 export function getTagCounts(
   bookmarkEntries: BookmarkKeyValuePair[]

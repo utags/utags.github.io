@@ -1,5 +1,6 @@
 import { splitTags } from 'utags-utils'
-import { normalizeAndDeduplicateStrings, getHostName } from '../index.js'
+import { normalizeAndDeduplicateStrings } from '../index.js'
+import { getHostName } from '../url-utils.js'
 import { type FilterCondition, rejectAllCondition } from '../filter-registry.js'
 
 function createExactDomainMatcher(domain: string): FilterCondition {

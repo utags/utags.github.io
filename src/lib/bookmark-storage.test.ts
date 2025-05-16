@@ -125,7 +125,6 @@ describe('BookmarkStorage', () => {
   // Valid bookmark store for testing
   const validBookmarksStore: BookmarksStore = {
     data: {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
       'https://example.com': {
         tags: ['example', 'test'],
         meta: {
@@ -134,7 +133,7 @@ describe('BookmarkStorage', () => {
           updated: Date.now(),
         },
       },
-      // eslint-disable-next-line @typescript-eslint/naming-convention
+
       'https://test.org': {
         tags: ['test', 'organization'],
         meta: {
@@ -1331,7 +1330,6 @@ describe('BookmarkStorage', () => {
       // Prepare import data
       const importData = {
         data: {
-          // eslint-disable-next-line @typescript-eslint/naming-convention
           'https://example.com': {
             tags: ['example', 'test'],
             meta: {
@@ -1340,7 +1338,7 @@ describe('BookmarkStorage', () => {
               updated: Date.now(),
             },
           },
-          // eslint-disable-next-line @typescript-eslint/naming-convention
+
           'https://test.org': {
             tags: ['test', 'organization'],
             meta: {

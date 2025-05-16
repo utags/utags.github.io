@@ -306,7 +306,6 @@ describe('htmlToBookmarks', () => {
 describe('validateBookmarks', () => {
   const validBookmarks = {
     data: {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
       'https://example.com': {
         tags: ['tag1'],
         meta: {
@@ -397,7 +396,6 @@ describe('validateBookmarks', () => {
     const invalidData = {
       ...validBookmarks,
       data: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         'https://example.com': {
           tags: 'not-an-array',
           meta: validBookmarks.data['https://example.com'].meta,
@@ -414,7 +412,6 @@ describe('validateBookmarks', () => {
     const invalidData = {
       ...validBookmarks,
       data: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         'https://example.com': {
           tags: ['tag1'],
           meta: { created: '1620000000000', updated: 1_620_000_001_000 },
@@ -431,7 +428,6 @@ describe('validateBookmarks', () => {
     const noCreatedData = {
       ...validBookmarks,
       data: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         'https://example.com': {
           tags: ['tag1'],
           meta: {
@@ -451,7 +447,7 @@ describe('validateBookmarks', () => {
       ...validBookmarks,
       data: {
         ...validBookmarks.data,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+
         'https://example2.com': {
           tags: ['tag2'],
           meta: {

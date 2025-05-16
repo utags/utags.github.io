@@ -1,4 +1,15 @@
 export const releaseNotes = {
+  'https://utags.link/#releas-notes//v0.5': {
+    meta: {
+      title: 'Release Notes - v0.5',
+      note: `
+- 显示已删除书签列表
+      `,
+      created: new Date('2025-05-16T15:30:00.000Z').getTime(),
+      updated: new Date('2025-05-16T15:30:00.000Z').getTime(),
+    },
+    tags: ['releas-notes', 'utags'],
+  },
   'https://utags.link/#releas-notes//v0.4': {
     meta: {
       title: 'Release Notes - v0.4',

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { untrack, createEventDispatcher } from 'svelte'
+  import { getContext, untrack, createEventDispatcher } from 'svelte'
   import { appConfig } from '../config/app-config'
   import type { BookmarkKeyValuePair } from '../types/bookmarks'
   import VirtualList from 'svelte-virtual-list'
@@ -21,6 +21,10 @@
   let lastSelectedIndex = $state<number | null>(null)
   let fullList = $state(false)
   let scrollTop = $state(0)
+  // Indicate if viewing deleted bookmarks
+  let isViewingDeleted = $derived(
+    getContext('sharedStatus').isViewingDeleted as boolean
+  )
 
   $effect(() => {
     const scrollTopValue = scrollTop
@@ -198,6 +202,26 @@
     dispatch('batchDeleteBookmarks', { selectedBookmarkUrls })
   }
 
+  /**
+   * Start batch bookmark restoration for selected bookmarks.
+   * Dispatches an event to the parent component to handle restoration.
+   */
+  function startBatchRestoreBookmarks() {
+    if (selectedBookmarkUrls.length === 0) return
+    dispatch('batchRestoreBookmarks', { selectedBookmarkUrls })
+    alert('此功能即将上线，敬请期待！')
+  }
+
+  /**
+   * Start batch bookmark permanent deletion for selected bookmarks.
+   * Dispatches an event to the parent component to handle permanent deletion.
+   */
+  function startBatchPermanentDeleteBookmarks() {
+    if (selectedBookmarkUrls.length === 0) return
+    dispatch('batchPermanentDeleteBookmarks', { selectedBookmarkUrls })
+    alert('此功能即将上线，敬请期待！')
+  }
+
   // Reset selection when filtered bookmarks change
   $effect(() => {
     console.log('reset selection when filtered bookmarks change')
@@ -241,30 +265,45 @@
       </div>
 
       <div class="flex gap-2">
-        <button
-          class="rounded-md bg-green-600 px-3 py-1 text-sm text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-green-700 dark:hover:bg-green-600"
-          disabled={selectedCount === 0}
-          onclick={startBatchAddTag}>
-          添加标签
-        </button>
-        <button
-          class="rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-600"
-          disabled={selectedCount === 0}
-          onclick={startBatchRemoveTag}>
-          删除标签
-        </button>
-        <button
-          class="rounded-md bg-indigo-600 px-3 py-1 text-sm text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-indigo-700 dark:hover:bg-indigo-600"
-          disabled={selectedCount === 0}
-          onclick={startBatchTagEdit}>
-          批量修改标签
-        </button>
-        <button
-          class="rounded-md bg-red-700 px-3 py-1 text-sm text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-800 dark:hover:bg-red-700"
-          disabled={selectedCount === 0}
-          onclick={startBatchDeleteBookmarks}>
-          批量删除书签
-        </button>
+        {#if isViewingDeleted}
+          <button
+            class="rounded-md bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-700 dark:hover:bg-blue-600"
+            disabled={selectedCount === 0}
+            onclick={startBatchRestoreBookmarks}>
+            还原书签
+          </button>
+          <button
+            class="rounded-md bg-red-700 px-3 py-1 text-sm text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-800 dark:hover:bg-red-700"
+            disabled={selectedCount === 0}
+            onclick={startBatchPermanentDeleteBookmarks}>
+            永久删除书签
+          </button>
+        {:else}
+          <button
+            class="rounded-md bg-green-600 px-3 py-1 text-sm text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-green-700 dark:hover:bg-green-600"
+            disabled={selectedCount === 0}
+            onclick={startBatchAddTag}>
+            添加标签
+          </button>
+          <button
+            class="rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-600"
+            disabled={selectedCount === 0}
+            onclick={startBatchRemoveTag}>
+            删除标签
+          </button>
+          <button
+            class="rounded-md bg-indigo-600 px-3 py-1 text-sm text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-indigo-700 dark:hover:bg-indigo-600"
+            disabled={selectedCount === 0}
+            onclick={startBatchTagEdit}>
+            批量修改标签
+          </button>
+          <button
+            class="rounded-md bg-red-700 px-3 py-1 text-sm text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-800 dark:hover:bg-red-700"
+            disabled={selectedCount === 0}
+            onclick={startBatchDeleteBookmarks}>
+            批量删除书签
+          </button>
+        {/if}
       </div>
     </div>
   {/if}

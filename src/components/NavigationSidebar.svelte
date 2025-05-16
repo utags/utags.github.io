@@ -1,20 +1,7 @@
 <script lang="ts">
-  import {
-    Bookmark,
-    BookmarkPlus,
-    Tag,
-    List,
-    Clock,
-    Star,
-    Globe,
-    Folder,
-    NotebookPen,
-    PanelLeftOpen,
-    PanelLeftClose,
-  } from 'lucide-svelte'
-  import ExpandableContainer from './ui/ExpandableContainer.svelte'
-  import ExpandIcon from './ui/ExpandIcon.svelte'
+  import { PanelLeftOpen, PanelLeftClose } from 'lucide-svelte'
   import GroupSeparator from './ui/GroupSeparator.svelte'
+  import NavigationGroup from './ui/NavigationGroup.svelte'
   import type { TagHierarchyItem } from '../types/bookmarks.js'
   import { settings } from '../stores/stores'
   import Collections from './Collections.svelte'
@@ -59,8 +46,9 @@
   // #~/folder1/folder2/#tag1,tag2
   // 自定义文件夹
   // 共享书签集 (访问过的自动保存，最近保存过的在最上面，支持删除)
-  // collections/shared/1234567890
+  // collections/shared/1234567890 -> ?collection=shared/1234567890
   // collections/sahred/2345678901
+  // explore/collections
   // 导航
   //   Applications
   //   Tools
@@ -102,12 +90,22 @@
     // },
   ])
 
+  let navGroupOther = $state({
+    title: '更多收藏集',
+    icon: 'folder',
+    items: [
+      { name: '已删除书签', icon: 'list', href: '/c/deleted' },
+      // { name: '更新日志', icon: 'star', href: '?collection=release-notes' },
+      { name: '更新日志', icon: 'star', href: '?t=releas-notes' },
+    ],
+    open: false,
+  })
+
   let isCollapsed = $derived($settings.navigationSidebarCollapsed ?? false)
 
-  function toggleGroup(index) {
-    navGroups[index].open = !navGroups[index].open
-  }
-
+  /**
+   * Toggle sidebar collapsed state
+   */
   function toggleSidebar() {
     $settings.navigationSidebarCollapsed = !$settings.navigationSidebarCollapsed
   }
@@ -119,58 +117,21 @@
   {#if !isCollapsed || true}
     <nav class="flex w-[calc(var(--sidebar-width)-11px)] flex-col gap-1">
       {#each navGroups as group, i}
-        <div class="group">
-          <div
-            class="group-title"
-            onclick={() => toggleGroup(i)}
-            onkeydown={(e) =>
-              (e.key === 'Enter' || e.key === ' ') && toggleGroup(i)}
-            role="button"
-            tabindex="0">
-            <span class="flex-1 text-left font-semibold">{group.title}</span>
-            <div class="group-title-button {group.open ? '' : 'opacity-100'}">
-              <ExpandIcon expanded={group.open} />
-            </div>
-          </div>
-
-          <ExpandableContainer expanded={group.open}>
-            <div class="ml-3 flex flex-col gap-1">
-              {#each group.items as item}
-                <a
-                  href={item.href}
-                  class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
-                  <span class="h-4 w-4">
-                    {#if item.icon === 'list'}
-                      <List size={16} />
-                    {:else if item.icon === 'clock'}
-                      <Clock size={16} />
-                    {:else if item.icon === 'star'}
-                      <Star size={16} />
-                    {:else if item.icon === 'globe'}
-                      <Globe size={16} />
-                    {:else if item.icon === 'note'}
-                      <NotebookPen size={16} />
-                    {:else if item.icon === 'bookmark-plus'}
-                      <BookmarkPlus size={16} />
-                    {:else}
-                      <Folder size={16} />
-                    {/if}
-                  </span>
-                  <span>{item.name}</span>
-                </a>
-              {/each}
-            </div>
-          </ExpandableContainer>
-        </div>
+        <NavigationGroup {group} />
         {#if i < navGroups.length - 1}
           <GroupSeparator />
         {/if}
       {/each}
-      <TagHierarchy {tagHierarchyItems} />
+      {#if tagHierarchyItems.length > 0}
+        <GroupSeparator />
+        <TagHierarchy {tagHierarchyItems} />
+      {/if}
       <GroupSeparator />
       <SavedFilters />
       <GroupSeparator />
       <Collections />
+      <GroupSeparator />
+      <NavigationGroup group={navGroupOther} />
     </nav>
   {/if}
 

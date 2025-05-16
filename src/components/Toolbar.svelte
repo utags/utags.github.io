@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getContext } from 'svelte'
   import { createEventDispatcher } from 'svelte'
   import { type NestedFilterExpression } from '../types/filters'
   import Statistics from './Statistics.svelte'
@@ -20,6 +21,11 @@
   let menuOpen = $state(false)
   // Selection mode state
   let selectionMode = $state(false)
+
+  // Indicate if viewing deleted bookmarks
+  let isViewingDeleted = $derived(
+    getContext('sharedStatus').isViewingDeleted as boolean
+  )
 
   let nestedFilterExpression: NestedFilterExpression = [
     [
@@ -218,12 +224,17 @@
 
       <DropdownMenu
         bind:open={menuOpen}
-        items={[
-          { value: 'selectMode', label: '选择' },
-          { value: 'openAll', label: '打开所有书签' },
-          { value: 'bookmarksExportCurrent', label: '导出当前筛选结果' },
-          { value: 'bookmarksExportAll', label: '导出所有书签' },
-        ]}
+        items={isViewingDeleted
+          ? [
+              { value: 'selectMode', label: '选择' },
+              { value: 'openAll', label: '打开所有书签' },
+            ]
+          : [
+              { value: 'selectMode', label: '选择' },
+              { value: 'openAll', label: '打开所有书签' },
+              { value: 'bookmarksExportCurrent', label: '导出当前筛选结果' },
+              { value: 'bookmarksExportAll', label: '导出所有书签' },
+            ]}
         selectedValue=""
         onSelect={(value) => {
           if (value === 'openAll') {

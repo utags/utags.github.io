@@ -2,6 +2,7 @@ import { get } from 'svelte/store'
 import { initialBookmarks } from '../data/initial-bookmarks.js'
 import { initialBookmarks as initialBookmarksCN } from '../data/initial-bookmarks-zh-CN.js'
 import { bookmarkStorage } from '../lib/bookmark-storage.js'
+import { isChineseLocale } from '../utils/i18n-utils.js'
 import { filters } from './saved-filters.js'
 import { getCollections } from './collections.js'
 import { settings } from './stores.js'
@@ -32,7 +33,9 @@ function initializeSettings() {
 async function initializeBookmarks() {
   if (get(settings).isFirstRun) {
     // Initial bookmarks
-    await bookmarkStorage.updateBookmarks(Object.entries(initialBookmarksCN))
+    await bookmarkStorage.updateBookmarks(
+      Object.entries(isChineseLocale() ? initialBookmarksCN : initialBookmarks)
+    )
   }
 }
 

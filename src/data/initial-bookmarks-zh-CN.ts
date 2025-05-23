@@ -1,11 +1,33 @@
 export const initialBookmarks = {
+  'https://utags.link/': {
+    meta: {
+      title: 'UTags 书签管理器',
+      description:
+        'UTags 书签管理器是一个现代化的书签管理工具，旨在帮助开发者和资深用户摆脱书签杂乱无章的困扰。它不同于传统的书签管理方式，采用了灵活的标签系统和强大的筛选功能，让用户能够更高效地管理和查找网络资源。',
+      note: `使用说明:
+- 可以给书签添加备注
+- 在设置里清空数据
+- 支持导入 Chrome/Edge/Firefox/Safari 的书签 HTML 文件
+      `,
+      created: Date.now(),
+      updated: Date.now(),
+    },
+    tags: [
+      '开源项目',
+      '书签',
+      '书签管理器',
+      '工具/免费',
+      '稍后阅读',
+      'Bookmarks',
+    ],
+  },
   'https://greasyfork.org/scripts/460718': {
     meta: {
       title: 'Userscript - 🏷️ 小鱼标签 (UTags) - 为链接添加用户标签',
       created: Date.now(),
       updated: Date.now(),
     },
-    tags: ['开源项目', 'Tools', '油猴脚本', 'userscript'],
+    tags: ['开源项目', 'Tools', '用户脚本', 'userscript'],
   },
   'https://chromewebstore.google.com/detail/utags-add-usertags-to-lin/kofjcnaphffjoookgahgjidofbdplgig':
     {
@@ -51,15 +73,31 @@ export const initialBookmarks = {
       created: Date.now() - 4000 - Math.floor(Math.random() * 3_600_000),
       updated: Date.now() - 4000,
     },
-    tags: ['开源项目', '浏览器扩展', '油猴脚本', 'userscript'],
+    tags: ['开源项目', '浏览器扩展', '用户脚本', 'userscript'],
   },
-  'https://www.v2ex.com/t/924103': {
+  'https://utags.link/c/public/help': {
     meta: {
-      title: '小鱼标签（UTags）诞生记',
+      title: '帮助文档',
       created: Date.now() - 4000 - Math.floor(Math.random() * 3_600_000),
       updated: Date.now() - 4000,
     },
-    tags: ['开源项目', '浏览器扩展', '油猴脚本', 'userscript', '稍后阅读'],
+    tags: ['help', 'public-collection', 'utags'],
+  },
+  'https://utags.link/c/public/release-notes': {
+    meta: {
+      title: '更新日志',
+      created: Date.now() - 4000 - Math.floor(Math.random() * 3_600_000),
+      updated: Date.now() - 4000,
+    },
+    tags: ['release-notes', 'public-collection', 'utags'],
+  },
+  'https://github.com/orgs/utags/discussions': {
+    meta: {
+      title: '反馈与建议',
+      created: Date.now() - 4000 - Math.floor(Math.random() * 3_600_000),
+      updated: Date.now() - 4000,
+    },
+    tags: ['discussions', '论坛', '社区', 'utags'],
   },
   'https://utags.link/ref/': {
     meta: {
@@ -75,23 +113,9 @@ export const initialBookmarks = {
       created: Date.now() - 4000 - Math.floor(Math.random() * 3_600_000),
       updated: Date.now() - 4000,
     },
-    tags: ['开源项目', '书签', '书签管理器', '工具/免费'],
+    tags: ['开源项目', '书签', '书签管理器', '工具/免费', 'Bookmarks'],
   },
-  'https://utags.link/': {
-    meta: {
-      title: 'UTags 书签管理器',
-      description:
-        'UTags 书签管理器是一个现代化的书签管理工具，旨在帮助开发者和资深用户摆脱书签杂乱无章的困扰。它不同于传统的书签管理方式，采用了灵活的标签系统和强大的筛选功能，让用户能够更高效地管理和查找网络资源。',
-      note: `使用说明:
-- 可以给书签添加备注
-- 在设置里清空数据
-- 支持导入 Chrome/Edge/Firefox/Safari 的书签 HTML 文件
-      `,
-      created: Date.now() - 4000 - Math.floor(Math.random() * 3_600_000),
-      updated: Date.now() - 4000,
-    },
-    tags: ['开源项目', '书签', '书签管理器', '工具/免费', '稍后阅读'],
-  },
+
   'https://tapmeplus1.com/zh': {
     meta: {
       title: '《点我加 1》的网页版小游戏',
@@ -132,6 +156,14 @@ export const initialBookmarks = {
       updated: Date.now() - 4000,
     },
     tags: ['技术栈', 'TypeScript', '开源项目'],
+  },
+  'https://inlang.com/m/gerre34r/library-inlang-paraglideJs': {
+    meta: {
+      title: 'Paraglide JS',
+      created: Date.now() - 4000 - Math.floor(Math.random() * 3_600_000),
+      updated: Date.now() - 4000,
+    },
+    tags: ['技术栈', 'i18n', '开源项目'],
   },
   'https://vite.dev/': {
     meta: {
@@ -177,5 +209,15 @@ export const initialBookmarks = {
       updated: Date.now() - 4000,
     },
     tags: ['工具/AI', '开源项目', '💰 赞助商'],
+  },
+  'https://greasyfork.org/': {
+    meta: {
+      title: 'Greasy Fork',
+      description:
+        'Greasy Fork is a free site providing user scripts to improve your web browsing experience.',
+      created: Date.now() - 4000 - Math.floor(Math.random() * 3_600_000),
+      updated: Date.now() - 4000,
+    },
+    tags: ['userscript', '用户脚本', '💰 赞助商'],
   },
 }

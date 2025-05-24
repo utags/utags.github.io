@@ -137,6 +137,11 @@ npm run dev
 
 请遵循我们的[贡献指南](CONTRIBUTING.zh-CN.md)。
 
+## Instances
+
+- [https://utags.link/](https://utags.link/)
+- [https://utags-bookmarks.pages.dev/](https://utags-bookmarks.pages.dev/)
+
 ## 📄 许可证
 
 版权所有 (c) 2025 [Pipecraft](https://www.pipecraft.net)。基于 [MIT 许可证](LICENSE) 授权。

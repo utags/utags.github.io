@@ -7,6 +7,10 @@ import {
   RenameTagCommand,
 } from './tag-commands.js'
 
+function bookmarksToUrls(bookmarks: BookmarkKeyValuePair[]): string[] {
+  return bookmarks.map((bookmark) => bookmark[0])
+}
+
 describe('AddTagCommand', () => {
   // Sample bookmarks for testing
   let testBookmarks: BookmarkKeyValuePair[]
@@ -41,10 +45,10 @@ describe('AddTagCommand', () => {
 
   it('should add a tag to bookmarks that do not have it', () => {
     // Create command
-    const command = new AddTagCommand(testBookmarks, 'new-tag')
+    const command = new AddTagCommand(bookmarksToUrls(testBookmarks), 'new-tag')
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -76,7 +80,7 @@ describe('AddTagCommand', () => {
     ])
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify tags were removed after undo
     expect(testBookmarks[0][1].tags).not.toContain('new-tag')
@@ -90,10 +94,13 @@ describe('AddTagCommand', () => {
     testBookmarks[0][1].tags.push('existing-tag')
 
     // Create command
-    const command = new AddTagCommand(testBookmarks, 'existing-tag')
+    const command = new AddTagCommand(
+      bookmarksToUrls(testBookmarks),
+      'existing-tag'
+    )
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -129,7 +136,7 @@ describe('AddTagCommand', () => {
     ])
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify tags were restored after undo
     expect(testBookmarks[0][1].tags).toContain('existing-tag') // First bookmark is not affected, still keeps the tag
@@ -147,7 +154,7 @@ describe('AddTagCommand', () => {
     const command = new AddTagCommand([], 'new-tag')
 
     // Execute command
-    command.execute()
+    command.execute([])
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -162,16 +169,16 @@ describe('AddTagCommand', () => {
 
     // Undo command (should not throw errors)
     expect(() => {
-      command.undo()
+      command.undo([])
     }).not.toThrow()
   })
 
   it('should undo tag addition correctly', () => {
     // Create command
-    const command = new AddTagCommand(testBookmarks, 'new-tag')
+    const command = new AddTagCommand(bookmarksToUrls(testBookmarks), 'new-tag')
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -186,7 +193,7 @@ describe('AddTagCommand', () => {
     expect(testBookmarks[1][1].tags).toContain('new-tag')
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify tags were removed
     expect(testBookmarks[0][1].tags).not.toContain('new-tag')
@@ -199,11 +206,11 @@ describe('AddTagCommand', () => {
 
   it('should add deletedMeta when DELETED_BOOKMARK_TAG is added and remove it on undo', () => {
     const command = new AddTagCommand(
-      testBookmarks, // Neither bookmark has DELETED_BOOKMARK_TAG initially
+      bookmarksToUrls(testBookmarks), // Neither bookmark has DELETED_BOOKMARK_TAG initially
       [DELETED_BOOKMARK_TAG, 'another-tag'],
       'BATCH_DELETE_BOOKMARKS'
     )
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -232,7 +239,7 @@ describe('AddTagCommand', () => {
     expect(testBookmarks[1][1].tags).toContain('another-tag')
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify deletedMeta is removed after undo for both bookmarks
     expect(testBookmarks[0][1].deletedMeta).toBeUndefined()
@@ -259,11 +266,11 @@ describe('AddTagCommand', () => {
     // Attempt to add DELETED_BOOKMARK_TAG (which is already there for the first bookmark)
     // and 'new-common-tag' to both bookmarks
     const command = new AddTagCommand(
-      testBookmarks,
+      bookmarksToUrls(testBookmarks),
       [DELETED_BOOKMARK_TAG, 'new-common-tag'],
       'BATCH_DELETE_BOOKMARKS' // This actionType will be used for the second bookmark
     )
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -296,7 +303,7 @@ describe('AddTagCommand', () => {
     expect(testBookmarks[1][1].tags).toContain('new-common-tag')
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify the first bookmark still has DELETED_BOOKMARK_TAG and its original deletedMeta
     expect(testBookmarks[0][1].tags).toContain(DELETED_BOOKMARK_TAG)
@@ -318,26 +325,29 @@ describe('AddTagCommand', () => {
   })
 
   it('should return correct command type', () => {
-    const command = new AddTagCommand(testBookmarks, 'new-tag')
+    const command = new AddTagCommand(bookmarksToUrls(testBookmarks), 'new-tag')
     expect(command.getType()).toBe('add')
   })
 
   it('should return correct source tag', () => {
-    const command = new AddTagCommand(testBookmarks, 'new-tag')
+    const command = new AddTagCommand(bookmarksToUrls(testBookmarks), 'new-tag')
     expect(command.getSourceTags()).toEqual(['new-tag'])
   })
 
   it('should return undefined for target tag', () => {
-    const command = new AddTagCommand(testBookmarks, 'new-tag')
+    const command = new AddTagCommand(bookmarksToUrls(testBookmarks), 'new-tag')
     expect(command.getTargetTags()).toBeUndefined()
   })
 
   it('should add multiple tags to bookmarks that do not have them', () => {
     // Create command with multiple tags
-    const command = new AddTagCommand(testBookmarks, ['new-tag-1', 'new-tag-2'])
+    const command = new AddTagCommand(bookmarksToUrls(testBookmarks), [
+      'new-tag-1',
+      'new-tag-2',
+    ])
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -377,7 +387,7 @@ describe('AddTagCommand', () => {
     ])
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify tags were removed after undo
     expect(testBookmarks[0][1].tags).not.toContain('new-tag-1')
@@ -393,13 +403,13 @@ describe('AddTagCommand', () => {
     testBookmarks[0][1].tags.push('existing-tag-1')
 
     // Create command with a mix of existing and new tags
-    const command = new AddTagCommand(testBookmarks, [
+    const command = new AddTagCommand(bookmarksToUrls(testBookmarks), [
       'existing-tag-1',
       'new-tag-3',
     ])
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -447,7 +457,7 @@ describe('AddTagCommand', () => {
     ])
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify tags were restored after undo
     expect(testBookmarks[0][1].tags).toContain('existing-tag-1') // First bookmark keeps existing tag
@@ -464,14 +474,14 @@ describe('AddTagCommand', () => {
 
   it('should handle duplicate tags in the input array', () => {
     // Create command with duplicate tags
-    const command = new AddTagCommand(testBookmarks, [
+    const command = new AddTagCommand(bookmarksToUrls(testBookmarks), [
       'duplicate-tag',
       'duplicate-tag',
       'another-tag',
     ])
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -518,7 +528,7 @@ describe('AddTagCommand', () => {
     ])
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify tags were removed after undo
     expect(testBookmarks[0][1].tags).not.toContain('duplicate-tag')
@@ -529,10 +539,13 @@ describe('AddTagCommand', () => {
 
   it('should handle string input with multiple tags', () => {
     // Create command with comma-separated string of tags
-    const command = new AddTagCommand(testBookmarks, 'tag1,  , , tag2 ， tag3')
+    const command = new AddTagCommand(
+      bookmarksToUrls(testBookmarks),
+      'tag1,  , , tag2 ， tag3'
+    )
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -569,7 +582,7 @@ describe('AddTagCommand', () => {
     expect(originalStates.size).toBe(2)
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify tags were removed after undo
     expect(testBookmarks[0][1].tags).not.toContain('tag1')
@@ -582,7 +595,7 @@ describe('AddTagCommand', () => {
 
   it('should correctly report source tags', () => {
     // Create command with multiple tags
-    const command = new AddTagCommand(testBookmarks, [
+    const command = new AddTagCommand(bookmarksToUrls(testBookmarks), [
       'tag-a',
       'tag-b',
       'tag-c',
@@ -628,10 +641,10 @@ describe('RemoveTagCommand', () => {
 
   it('should remove a tag from bookmarks that have it', () => {
     // Create command
-    const command = new RemoveTagCommand(testBookmarks, 'test')
+    const command = new RemoveTagCommand(bookmarksToUrls(testBookmarks), 'test')
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -660,7 +673,7 @@ describe('RemoveTagCommand', () => {
     ])
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify tags were restored after undo
     expect(testBookmarks[0][1].tags).toContain('test')
@@ -676,10 +689,10 @@ describe('RemoveTagCommand', () => {
     )
 
     // Create command
-    const command = new RemoveTagCommand(testBookmarks, 'test')
+    const command = new RemoveTagCommand(bookmarksToUrls(testBookmarks), 'test')
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -704,7 +717,7 @@ describe('RemoveTagCommand', () => {
     ])
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify only second bookmark was restored
     expect(testBookmarks[0][1].tags).not.toContain('test') // First bookmark is not affected
@@ -718,7 +731,7 @@ describe('RemoveTagCommand', () => {
     const command = new RemoveTagCommand([], 'test')
 
     // Execute command
-    command.execute()
+    command.execute([])
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -732,16 +745,19 @@ describe('RemoveTagCommand', () => {
 
     // Undo command (should not throw errors)
     expect(() => {
-      command.undo()
+      command.undo([])
     }).not.toThrow()
   })
 
   it('should handle removing a tag that does not exist in any bookmark', () => {
     // Create command with non-existent tag
-    const command = new RemoveTagCommand(testBookmarks, 'non-existent-tag')
+    const command = new RemoveTagCommand(
+      bookmarksToUrls(testBookmarks),
+      'non-existent-tag'
+    )
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -756,7 +772,7 @@ describe('RemoveTagCommand', () => {
     expect(testBookmarks[1][1].tags).toEqual(['test', 'organization', 'common'])
 
     // Undo command (should not change anything)
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify bookmarks remain unchanged
     expect(testBookmarks[0][1].tags).toEqual(['example', 'test', 'common'])
@@ -764,26 +780,29 @@ describe('RemoveTagCommand', () => {
   })
 
   it('should return correct command type', () => {
-    const command = new RemoveTagCommand(testBookmarks, 'test')
+    const command = new RemoveTagCommand(bookmarksToUrls(testBookmarks), 'test')
     expect(command.getType()).toBe('remove')
   })
 
   it('should return correct source tag', () => {
-    const command = new RemoveTagCommand(testBookmarks, 'test')
+    const command = new RemoveTagCommand(bookmarksToUrls(testBookmarks), 'test')
     expect(command.getSourceTags()).toEqual(['test'])
   })
 
   it('should return undefined for target tag', () => {
-    const command = new RemoveTagCommand(testBookmarks, 'test')
+    const command = new RemoveTagCommand(bookmarksToUrls(testBookmarks), 'test')
     expect(command.getTargetTags()).toBeUndefined()
   })
 
   it('should remove multiple tags from bookmarks that have them', () => {
     // Create command with multiple tags
-    const command = new RemoveTagCommand(testBookmarks, ['test', 'common'])
+    const command = new RemoveTagCommand(bookmarksToUrls(testBookmarks), [
+      'test',
+      'common',
+    ])
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -814,7 +833,7 @@ describe('RemoveTagCommand', () => {
     ])
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify tags were restored after undo
     expect(testBookmarks[0][1].tags).toContain('test')
@@ -827,10 +846,13 @@ describe('RemoveTagCommand', () => {
 
   it('should only remove tags if bookmark contains ALL specified tags', () => {
     // Create command with multiple tags where one bookmark has all tags and one doesn't
-    const command = new RemoveTagCommand(testBookmarks, ['test', 'example'])
+    const command = new RemoveTagCommand(bookmarksToUrls(testBookmarks), [
+      'test',
+      'example',
+    ])
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -858,7 +880,7 @@ describe('RemoveTagCommand', () => {
     expect(originalStates.has('https://test.org')).toBe(false)
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify only first bookmark was restored
     expect(testBookmarks[0][1].tags).toContain('test')
@@ -869,13 +891,16 @@ describe('RemoveTagCommand', () => {
 
   it('should handle string input with multiple tags', () => {
     // Create command with comma-separated string of tags
-    const command = new RemoveTagCommand(testBookmarks, 'test,common')
+    const command = new RemoveTagCommand(
+      bookmarksToUrls(testBookmarks),
+      'test,common'
+    )
 
     // Verify source tags are correctly reported
     expect(command.getSourceTags()).toEqual(['test', 'common'])
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -896,7 +921,7 @@ describe('RemoveTagCommand', () => {
     expect(originalStates.size).toBe(2)
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify tags were restored after undo
     expect(testBookmarks[0][1].tags).toContain('test')
@@ -907,14 +932,14 @@ describe('RemoveTagCommand', () => {
 
   it('should handle duplicate tags in the input array', () => {
     // Create command with duplicate tags
-    const command = new RemoveTagCommand(testBookmarks, [
+    const command = new RemoveTagCommand(bookmarksToUrls(testBookmarks), [
       'test',
       'test',
       'common',
     ])
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -935,7 +960,7 @@ describe('RemoveTagCommand', () => {
     expect(originalStates.size).toBe(2)
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify tags were restored after undo
     expect(testBookmarks[0][1].tags).toContain('test')
@@ -946,13 +971,13 @@ describe('RemoveTagCommand', () => {
 
   it('should handle mix of existing and non-existing tags', () => {
     // Create command with mix of existing and non-existing tags
-    const command = new RemoveTagCommand(testBookmarks, [
+    const command = new RemoveTagCommand(bookmarksToUrls(testBookmarks), [
       'test',
       'non-existent-tag',
     ])
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -967,7 +992,7 @@ describe('RemoveTagCommand', () => {
     expect(testBookmarks[1][1].tags).toEqual(['test', 'organization', 'common'])
 
     // Undo command (should not change anything)
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify bookmarks remain unchanged
     expect(testBookmarks[0][1].tags).toEqual(['example', 'test', 'common'])
@@ -976,7 +1001,7 @@ describe('RemoveTagCommand', () => {
 
   it('should correctly report source tags for multiple tags', () => {
     // Create command with multiple tags
-    const command = new RemoveTagCommand(testBookmarks, [
+    const command = new RemoveTagCommand(bookmarksToUrls(testBookmarks), [
       'tag-a',
       'tag-b',
       'tag-c',
@@ -1005,14 +1030,14 @@ describe('RemoveTagCommand', () => {
 
     // Create command to remove the last tag
     const command = new RemoveTagCommand(
-      testBookmarks,
+      bookmarksToUrls(testBookmarks),
       'only-tag',
       'LAST_TAG_REMOVED' // Provide an actionType
     )
     const deletionTimestamp = Date.now() // Capture timestamp before execution for comparison
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -1040,7 +1065,7 @@ describe('RemoveTagCommand', () => {
     ])
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify bookmark is restored
     expect(testBookmarks[0][1].tags).toEqual(['only-tag'])
@@ -1059,10 +1084,10 @@ describe('RemoveTagCommand', () => {
     delete testBookmarks[1][1].deletedMeta
 
     const command = new RemoveTagCommand(
-      [testBookmarks[0]], // Only operate on the first bookmark
+      [testBookmarks[0][0]], // Only operate on the first bookmark
       DELETED_BOOKMARK_TAG
     )
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -1091,7 +1116,7 @@ describe('RemoveTagCommand', () => {
       'tagB',
     ])
 
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify DELETED_BOOKMARK_TAG and deletedMeta are restored
     expect(testBookmarks[0][1].tags).toContain(DELETED_BOOKMARK_TAG)
@@ -1119,10 +1144,10 @@ describe('RemoveTagCommand', () => {
     delete testBookmarks[1][1].deletedMeta
 
     const command = new RemoveTagCommand(
-      [testBookmarks[0]],
+      [testBookmarks[0][0]],
       [DELETED_BOOKMARK_TAG, 'tagA']
     )
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -1140,7 +1165,7 @@ describe('RemoveTagCommand', () => {
       originalStates.get(testBookmarks[0][0])!.deletedMeta!.actionType
     ).toEqual('LAST_TAG_REMOVED')
 
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify tags and deletedMeta are restored
     expect(testBookmarks[0][1].tags).toEqual([
@@ -1156,7 +1181,7 @@ describe('RemoveTagCommand', () => {
 
   it('should correctly handle removing DELETED_BOOKMARK_TAG when it is the only tag and deletedMeta exists', () => {
     // This test verifies the behavior when removing DELETED_BOOKMARK_TAG results in an empty tag list,
-    // and the bookmark already has deletedMeta. This triggers the 'else' branch in RemoveTagCommand.execute().
+    // and the bookmark already has deletedMeta. This triggers the 'else' branch in RemoveTagCommand.execute(testBookmarks).
     const initialDeletedTime = Date.now() - 7000
     const originalActionType = 'SOME_PREVIOUS_DELETE_ACTION'
     testBookmarks[0][1].tags = [DELETED_BOOKMARK_TAG]
@@ -1167,12 +1192,12 @@ describe('RemoveTagCommand', () => {
     }
 
     const command = new RemoveTagCommand(
-      [testBookmarks[0]],
+      [testBookmarks[0][0]],
       DELETED_BOOKMARK_TAG,
       // @ts-expect-error - This is for testing purposes
       'EXPLICIT_UNDELETE_ATTEMPT' // This actionType would be used if new deletedMeta was created
     )
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -1183,7 +1208,7 @@ describe('RemoveTagCommand', () => {
 
     // Based on the updated RemoveTagCommand logic (as of the last review):
     // 1. Removing DELETED_BOOKMARK_TAG makes newTags empty.
-    // 2. The 'else' block in execute() runs.
+    // 2. The 'else' block in execute(testBookmarks) runs.
     // 3. DELETED_BOOKMARK_TAG is added back to bookmark[1].tags.
     // 4. Crucially, the condition `if (isRemoveDeletedBookmarkTag && bookmark[1].deletedMeta)` is true.
     //    This means the existing `deletedMeta` (with `originalActionType`) is *kept*, and no new `deletedMeta` is created.
@@ -1201,7 +1226,7 @@ describe('RemoveTagCommand', () => {
       DELETED_BOOKMARK_TAG,
     ])
 
-    command.undo()
+    command.undo(testBookmarks)
 
     // Undo should restore the original tags and the original deletedMeta state.
     // 1. `bookmark[1].tags` is restored to `[DELETED_BOOKMARK_TAG]` from `affected`.
@@ -1291,12 +1316,12 @@ describe('RemoveTagCommand', () => {
     const initialDeletedMeta = { ...bookmarkToTest[1].deletedMeta! }
 
     const command = new RemoveTagCommand(
-      [bookmarkToTest],
+      [bookmarkToTest[0]],
       DELETED_BOOKMARK_TAG,
       // @ts-expect-error - This is for testing purposes
       'UNDELETE' // Explicitly undeleting
     )
-    command.execute()
+    command.execute([bookmarkToTest])
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -1313,7 +1338,7 @@ describe('RemoveTagCommand', () => {
       initialDeletedMeta
     )
 
-    command.undo()
+    command.undo([bookmarkToTest])
 
     expect(bookmarkToTest[1].tags).toContain(DELETED_BOOKMARK_TAG)
     expect(bookmarkToTest[1].tags).toEqual([
@@ -1330,12 +1355,12 @@ describe('RemoveTagCommand', () => {
     const initialDeletedMeta = { ...bookmarkToTest[1].deletedMeta! }
 
     const command = new RemoveTagCommand(
-      [bookmarkToTest],
+      [bookmarkToTest[0]],
       [DELETED_BOOKMARK_TAG, 'common'],
       // @ts-expect-error - This is for testing purposes
       'UNDELETE_AND_CLEANUP'
     )
-    command.execute()
+    command.execute([bookmarkToTest])
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -1353,7 +1378,7 @@ describe('RemoveTagCommand', () => {
       initialDeletedMeta
     )
 
-    command.undo()
+    command.undo([bookmarkToTest])
 
     expect(bookmarkToTest[1].tags).toContain(DELETED_BOOKMARK_TAG)
     expect(bookmarkToTest[1].tags).toContain('common')
@@ -1371,10 +1396,10 @@ describe('RemoveTagCommand', () => {
     const initialDeletedMeta = { ...bookmarkToTest[1].deletedMeta! }
 
     const command = new RemoveTagCommand(
-      [bookmarkToTest],
+      [bookmarkToTest[0]],
       ['common', 'test'] // DELETED_BOOKMARK_TAG is not in this list
     )
-    command.execute()
+    command.execute([bookmarkToTest])
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -1392,7 +1417,7 @@ describe('RemoveTagCommand', () => {
     ])
     expect(bookmarkToTest[1].deletedMeta).toEqual(initialDeletedMeta) // Should be unchanged
 
-    command.undo()
+    command.undo([bookmarkToTest])
 
     expect(bookmarkToTest[1].tags).toContain(DELETED_BOOKMARK_TAG)
     expect(bookmarkToTest[1].tags).toContain('common')
@@ -1411,10 +1436,10 @@ describe('RemoveTagCommand', () => {
     const initialDeletedMeta = { ...bookmarkToTest[1].deletedMeta! }
 
     const command = new RemoveTagCommand(
-      [bookmarkToTest],
+      [bookmarkToTest[0]],
       [DELETED_BOOKMARK_TAG, 'foo']
     )
-    command.execute()
+    command.execute([bookmarkToTest])
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -1427,7 +1452,7 @@ describe('RemoveTagCommand', () => {
     expect(bookmarkToTest[1].tags).toEqual([DELETED_BOOKMARK_TAG, 'unique'])
     expect(bookmarkToTest[1].deletedMeta).toEqual(initialDeletedMeta)
 
-    command.undo()
+    command.undo([bookmarkToTest])
     expect(bookmarkToTest[1].tags).toEqual([DELETED_BOOKMARK_TAG, 'unique'])
     expect(bookmarkToTest[1].deletedMeta).toEqual(initialDeletedMeta)
   })
@@ -1437,12 +1462,12 @@ describe('RemoveTagCommand', () => {
     const initialDeletedMeta = { ...bookmarkToTest[1].deletedMeta! }
 
     const command = new RemoveTagCommand(
-      [bookmarkToTest],
+      [bookmarkToTest[0]],
       DELETED_BOOKMARK_TAG,
       // @ts-expect-error - This is for testing purposes
       'UNDELETE_SINGLE'
     )
-    command.execute()
+    command.execute([bookmarkToTest])
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -1457,7 +1482,7 @@ describe('RemoveTagCommand', () => {
     // @ts-expect-error eslint/no-unsafe-assignment
     expect(bookmarkToTest[1]?._deletedMeta).toBeUndefined()
 
-    command.undo()
+    command.undo([bookmarkToTest])
 
     expect(bookmarkToTest[1].tags).toEqual([DELETED_BOOKMARK_TAG])
     expect(bookmarkToTest[1].deletedMeta).toEqual(initialDeletedMeta)
@@ -1475,16 +1500,15 @@ describe('RemoveTagCommand', () => {
         },
       },
     ] as BookmarkKeyValuePair
-    testBookmarks.push(bookmark)
 
     const command = new RemoveTagCommand(
-      [bookmark],
+      [bookmark[0]],
       ['tag1', 'tag2'],
       // @ts-expect-error - This is for testing purposes
       'ALL_SPECIFIED_REMOVED'
     )
     const deletionTimestamp = Date.now()
-    command.execute()
+    command.execute([bookmark])
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -1501,7 +1525,7 @@ describe('RemoveTagCommand', () => {
     )
     expect(originalStates.get(bookmark[0])!.tags).toEqual(['tag1', 'tag2'])
 
-    command.undo()
+    command.undo([bookmark])
 
     expect(bookmark[1].tags).toEqual(['tag1', 'tag2'])
     expect(bookmark[1].deletedMeta).toBeUndefined()
@@ -1519,11 +1543,10 @@ describe('RemoveTagCommand', () => {
         },
       },
     ] as BookmarkKeyValuePair
-    testBookmarks.push(bookmark)
 
-    const command = new RemoveTagCommand([bookmark], 'sole-tag') // No actionType
+    const command = new RemoveTagCommand([bookmark[0]], 'sole-tag') // No actionType
     const deletionTimestamp = Date.now()
-    command.execute()
+    command.execute([bookmark])
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -1540,7 +1563,7 @@ describe('RemoveTagCommand', () => {
     )
     expect(originalStates.get(bookmark[0])!.tags).toEqual(['sole-tag'])
 
-    command.undo()
+    command.undo([bookmark])
     expect(bookmark[1].tags).toEqual(['sole-tag'])
     expect(bookmark[1].deletedMeta).toBeUndefined()
   })
@@ -1591,10 +1614,14 @@ describe('RenameTagCommand', () => {
 
   it('should rename a tag in bookmarks that have it', () => {
     // Create command
-    const command = new RenameTagCommand(testBookmarks, 'test', 'testing')
+    const command = new RenameTagCommand(
+      bookmarksToUrls(testBookmarks),
+      'test',
+      'testing'
+    )
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -1632,7 +1659,7 @@ describe('RenameTagCommand', () => {
     expect(originalStates.has('https://other.net')).toBe(false)
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify tags were restored after undo
     expect(testBookmarks[0][1].tags).toContain('test')
@@ -1646,10 +1673,14 @@ describe('RenameTagCommand', () => {
 
   it('should not affect bookmarks that do not have the source tag', () => {
     // Create command
-    const command = new RenameTagCommand(testBookmarks, 'other', 'alternative')
+    const command = new RenameTagCommand(
+      bookmarksToUrls(testBookmarks),
+      'other',
+      'alternative'
+    )
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -1679,7 +1710,7 @@ describe('RenameTagCommand', () => {
     ])
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify only third bookmark was restored
     expect(testBookmarks[0][1].tags).toEqual(['example', 'test', 'common'])
@@ -1694,7 +1725,7 @@ describe('RenameTagCommand', () => {
     const command = new RenameTagCommand([], 'test', 'testing')
 
     // Execute command
-    command.execute()
+    command.execute([])
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -1708,20 +1739,20 @@ describe('RenameTagCommand', () => {
 
     // Undo command (should not throw errors)
     expect(() => {
-      command.undo()
+      command.undo(testBookmarks)
     }).not.toThrow()
   })
 
   it('should handle renaming a tag that does not exist in any bookmark', () => {
     // Create command with non-existent tag
     const command = new RenameTagCommand(
-      testBookmarks,
+      bookmarksToUrls(testBookmarks),
       'non-existent-tag',
       'new-tag'
     )
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -1737,7 +1768,7 @@ describe('RenameTagCommand', () => {
     expect(testBookmarks[2][1].tags).toEqual(['other', 'network'])
 
     // Undo command (should not change anything)
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify bookmarks remain unchanged
     expect(testBookmarks[0][1].tags).toEqual(['example', 'test', 'common'])
@@ -1747,10 +1778,14 @@ describe('RenameTagCommand', () => {
 
   it('should handle renaming to a tag that already exists', () => {
     // Create command to rename 'test' to 'common' (which already exists)
-    const command = new RenameTagCommand(testBookmarks, 'test', 'common')
+    const command = new RenameTagCommand(
+      bookmarksToUrls(testBookmarks),
+      'test',
+      'common'
+    )
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -1788,7 +1823,7 @@ describe('RenameTagCommand', () => {
     ])
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify tags were restored
     expect(testBookmarks[0][1].tags).toEqual(['example', 'test', 'common'])
@@ -1797,30 +1832,42 @@ describe('RenameTagCommand', () => {
   })
 
   it('should return correct command type', () => {
-    const command = new RenameTagCommand(testBookmarks, 'test', 'testing')
+    const command = new RenameTagCommand(
+      bookmarksToUrls(testBookmarks),
+      'test',
+      'testing'
+    )
     expect(command.getType()).toBe('rename')
   })
 
   it('should return correct source tag', () => {
-    const command = new RenameTagCommand(testBookmarks, 'test', 'testing')
+    const command = new RenameTagCommand(
+      bookmarksToUrls(testBookmarks),
+      'test',
+      'testing'
+    )
     expect(command.getSourceTags()).toEqual(['test'])
   })
 
   it('should return correct target tag', () => {
-    const command = new RenameTagCommand(testBookmarks, 'test', 'testing')
+    const command = new RenameTagCommand(
+      bookmarksToUrls(testBookmarks),
+      'test',
+      'testing'
+    )
     expect(command.getTargetTags()).toEqual(['testing'])
   })
 
   it('should rename multiple tags to multiple new tags', () => {
     // Create command with multiple source and target tags
     const command = new RenameTagCommand(
-      testBookmarks,
+      bookmarksToUrls(testBookmarks),
       ['test', 'common'],
       ['testing', 'shared']
     )
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -1863,7 +1910,7 @@ describe('RenameTagCommand', () => {
     expect(originalStates.has('https://other.net')).toBe(false)
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify tags were restored after undo
     expect(testBookmarks[0][1].tags).toContain('test')
@@ -1884,13 +1931,13 @@ describe('RenameTagCommand', () => {
   it('should only rename tags if bookmark contains ALL specified source tags', () => {
     // Create command with multiple source tags where only some bookmarks have all tags
     const command = new RenameTagCommand(
-      testBookmarks,
+      bookmarksToUrls(testBookmarks),
       ['test', 'example'],
       ['testing', 'sample']
     )
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -1926,7 +1973,7 @@ describe('RenameTagCommand', () => {
     expect(originalStates.has('https://other.net')).toBe(false)
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify only first bookmark was restored
     expect(testBookmarks[0][1].tags).toContain('test')
@@ -1942,7 +1989,7 @@ describe('RenameTagCommand', () => {
   it('should handle string input with multiple tags', () => {
     // Create command with comma-separated strings of tags
     const command = new RenameTagCommand(
-      testBookmarks,
+      bookmarksToUrls(testBookmarks),
       'test,common',
       'testing,shared'
     )
@@ -1951,7 +1998,7 @@ describe('RenameTagCommand', () => {
     expect(command.getTargetTags()).toEqual(['testing', 'shared'])
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -1981,7 +2028,7 @@ describe('RenameTagCommand', () => {
     expect(originalStates.size).toBe(2)
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify tags were restored after undo
     expect(testBookmarks[0][1].tags).toContain('test')
@@ -1998,7 +2045,7 @@ describe('RenameTagCommand', () => {
   it('should handle duplicate tags in the input arrays', () => {
     // Create command with duplicate tags
     const command = new RenameTagCommand(
-      testBookmarks,
+      bookmarksToUrls(testBookmarks),
       ['test', 'test', 'common'],
       ['testing', 'testing', 'shared']
     )
@@ -2007,7 +2054,7 @@ describe('RenameTagCommand', () => {
     expect(command.getTargetTags()).toEqual(['testing', 'shared'])
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -2043,7 +2090,7 @@ describe('RenameTagCommand', () => {
     expect(originalStates.size).toBe(2)
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify tags were restored after undo
     expect(testBookmarks[0][1].tags).toContain('test')
@@ -2055,13 +2102,13 @@ describe('RenameTagCommand', () => {
   it('should handle mix of existing and non-existing source tags', () => {
     // Create command with mix of existing and non-existing tags
     const command = new RenameTagCommand(
-      testBookmarks,
+      bookmarksToUrls(testBookmarks),
       ['test', 'non-existent-tag'],
       ['testing', 'new-tag']
     )
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -2077,7 +2124,7 @@ describe('RenameTagCommand', () => {
     expect(testBookmarks[2][1].tags).toEqual(['other', 'network'])
 
     // Undo command (should not change anything)
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify bookmarks remain unchanged
     expect(testBookmarks[0][1].tags).toEqual(['example', 'test', 'common'])
@@ -2088,7 +2135,7 @@ describe('RenameTagCommand', () => {
   it('should correctly report source and target tags for multiple tags', () => {
     // Create command with multiple tags
     const command = new RenameTagCommand(
-      testBookmarks,
+      bookmarksToUrls(testBookmarks),
       ['tag-a', 'tag-b', 'tag-c'],
       ['new-a', 'new-b', 'new-c']
     )
@@ -2103,13 +2150,13 @@ describe('RenameTagCommand', () => {
   it('should handle different number of source and target tags', () => {
     // Create command with more source tags than target tags
     const command = new RenameTagCommand(
-      testBookmarks,
+      bookmarksToUrls(testBookmarks),
       ['test', 'common', 'example'],
       ['testing', 'shared']
     )
 
     // Execute command
-    command.execute()
+    command.execute(testBookmarks)
     const executionResult = command.getExecutionResult()
     expect(executionResult).toBeDefined()
     const originalStates = executionResult!.originalStates
@@ -2138,7 +2185,7 @@ describe('RenameTagCommand', () => {
     ])
 
     // Undo command
-    command.undo()
+    command.undo(testBookmarks)
 
     // Verify first bookmark was restored
     expect(testBookmarks[0][1].tags).toEqual(['example', 'test', 'common'])

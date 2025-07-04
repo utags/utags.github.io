@@ -1714,7 +1714,7 @@ describe('SyncManager', () => {
         'http://example.com/modified-local': {
           tags: ['local-only'],
           meta: {
-            created: now - 50_000,
+            created: now - 50_000, // updated earlier than created
             updated: now - 60_000, // Not modified after lastSyncTime, staled
             title: 'Local Modified',
           },
@@ -1807,13 +1807,16 @@ describe('SyncManager', () => {
           remoteData['http://example.com/new-remote'], // New remote item added
       }
 
+      expectedMergedData['http://example.com/modified-local'].meta.created =
+        remoteData['http://example.com/modified-local'].meta.updated // updated earlier than created
+
       const expectedRemoteData = structuredClone(expectedMergedData)
 
       // Add updated2 for merged items
       const exceptionsForLocal = [
         // local
         'http://example.com/unmodified',
-        'http://example.com/modified-local',
+        // 'http://example.com/modified-local',
       ]
       setUpdated2ForBookmarks(
         expectedMergedData,
@@ -5115,7 +5118,8 @@ describe('SyncManager', () => {
         'http://example.com/item1': {
           tags: ['local', 'common'],
           meta: {
-            created: 0, // will be normalized to 'defaultDate'
+            // created: 0, // will be normalized to 'defaultDate'
+            created: 0, // will be normalized to 'updated'
             updated: now - 1000,
             title: 'Local Item 1',
             localField: 'local',
@@ -5202,7 +5206,8 @@ describe('SyncManager', () => {
         ...localData['http://example.com/item1']?.meta,
         ...remoteData['http://example.com/item1']?.meta,
         created: Math.min(
-          localData['http://example.com/item1']?.meta.created || DEFAULT_DATE,
+          // localData['http://example.com/item1']?.meta.created || DEFAULT_DATE,
+          localData['http://example.com/item1']?.meta.updated || DEFAULT_DATE,
           remoteData['http://example.com/item1']?.meta.created || DEFAULT_DATE
         ),
         updated2: currentSyncTime,
